@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
 import { Toaster } from 'sonner'
-import Dashboard from './components/Dashboard/Dashboard'
-import Inventario from './components/Inventory/Inventory'
-import Ventas from './components/Sales/Sales'
-import Analisis from './components/Analysis/Analysis'
-import Historial from './components/History/history'
-import Configuracion from './components/Settings/settings'
-import { Home, Package, ShoppingCart, BarChart2, History, Settings, RefreshCw } from 'lucide-react'
 import { useAppContext } from './context/appContext'
+import Principal from './components/principal/Principal';
+import Busqueda from './components/busqueda/Busqueda';
+import Historial from './components/historial/Historial';
+import Analisis from './components/analisis/Analisis';
+import Configuracion from './components/Settings/settings';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -74,10 +72,9 @@ const App: React.FC = () => {
         </nav>
         <main className={`flex-1 overflow-y-auto p-6 sm:p-8 ${modoOscuro ? 'text-white' : ''}`}>
           <div className="max-w-7xl mx-auto">
-            {activeTab === 'dashboard' && <Dashboard />}
-            {activeTab === 'inventario' && <Inventario />}
-            {activeTab === 'ventas' && <Ventas />}
+            {activeTab === 'dashboard' && <Principal />}
             {activeTab === 'analisis' && <Analisis />}
+            {activeTab === 'busqueda' && <Busqueda />}
             {activeTab === 'historial' && <Historial />}
           </div>
         </main>

@@ -1,31 +1,28 @@
 import React, { useState } from 'react'
 import { Toaster } from 'sonner'
-import { useAppContext } from './context/appContext'
 import Principal from './components/principal/Principal';
 import Busqueda from './components/busqueda/Busqueda';
 import Historial from './components/historial/Historial';
 import Analisis from './components/analisis/Analisis';
 import Configuracion from './components/Settings/settings';
+import { Home, Package, BarChart2, Settings, RefreshCw, History } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
-  const { config, updateTasasDolar } = useAppContext()
 
-  const modoOscuro = config.modoOscuro
+  const modoOscuro = false
 
   const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: Home },
-    { id: 'inventario', name: 'Inventario', icon: Package },
-    { id: 'ventas', name: 'Ventas', icon: ShoppingCart },
+    { id: 'dashboard', name: 'Principal', icon: Home },
+    { id: 'busqueda', name: 'Busqueda', icon: Package },
     { id: 'historial', name: 'Historial', icon: History },
     { id: 'analisis', name: 'Análisis', icon: BarChart2 }
   ]
 
   const handleUpdater = async () => {
-    await updateTasasDolar()
-    await window.electron.ipcRenderer.invoke('update-tasas')
+
   }
 
   return (
@@ -36,7 +33,7 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
-                <h1 className={`text-2xl font-bold ${modoOscuro ? 'text-blue-400' : 'text-blue-600'} tracking-tight`}>VENDIBLE 1.0.3</h1>
+                <h1 className={`text-2xl font-bold ${modoOscuro ? 'text-blue-400' : 'text-blue-600'} tracking-tight`}>TECNOFRENO 1.0.3</h1>
               </div>
               <div className="flex items-center space-x-1">
                 {tabs.map((tab) => (
@@ -84,42 +81,6 @@ const App: React.FC = () => {
           />
         )}
 
-        {/* Botón flotante para actualizar tasas */}
-        <div className="fixed bottom-6 right-6">
-          <button
-            onClick={handleUpdater}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            className={`p-3 rounded-full shadow-lg transition-all duration-200 ease-in-out ${modoOscuro
-              ? 'bg-blue-600 text-white hover:bg-blue-500'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-            aria-label="Actualizar tasas del dólar"
-          >
-            <RefreshCw className="h-6 w-6" />
-          </button>
-
-          {showTooltip && (
-            <div
-              className={`absolute bottom-full right-0 mb-2 p-2 rounded shadow-lg ${modoOscuro ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                }`}
-              style={{
-                width: '200px',
-                transform: 'translateX(16px)'
-              }}
-            >
-              <p className="font-semibold mb-1">Actualizar tasas del dólar</p>
-              <p className="text-sm">Las tasas se actualizan automáticamente cada 30 minutos. Haz clic para actualizar manualmente.</p>
-              <div
-                className={`absolute bottom-0 right-0 w-3 h-3 transform rotate-45 translate-y-1/2 ${modoOscuro ? 'bg-gray-800' : 'bg-white'
-                  }`}
-                style={{
-                  right: '12px'
-                }}
-              ></div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

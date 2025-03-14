@@ -1,0 +1,1 @@
+export type tipo = "Camioneta"| "Sedan" | "Autobus" | "Camion"

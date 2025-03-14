@@ -1,9 +1,16 @@
+import { tipo } from './types'
 declare global {
+  export interface error {
+    message: string
+  }
+
   // Vehículo registrado en el taller
   export interface Vehiculo {
     id: number
     modelo: string // Ejemplo: "4Runner", "Corolla", "Fusion"
     placa: string // Placa única
+    anio: number
+    tipo: tipo
   }
 
   // Cliente que solicita el servicio

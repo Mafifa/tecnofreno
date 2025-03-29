@@ -1,6 +1,6 @@
 import { tipo } from './types'
 declare global {
-  export interface error {
+  export interface Error {
     message: string
   }
 

@@ -39,51 +39,55 @@ export async function getDb() {
 
   // Crear tablas si no existen
   await db.exec(`
-  PRAGMA foreign_keys = ON;
+    PRAGMA foreign_keys = ON;
 
-  CREATE TABLE IF NOT EXISTS Cliente (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre TEXT NOT NULL,
-      cedula_rif TEXT UNIQUE NOT NULL,
-      telefono TEXT NOT NULL
-  );
+-- Crear tabla Cliente sin la columna cedula_rif
+CREATE TABLE IF NOT EXISTS Cliente (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    telefono TEXT NOT NULL
+);
 
-  CREATE TABLE IF NOT EXISTS Mecanico (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre TEXT NOT NULL
-  );
+-- Tabla Mecanico permanece igual
+CREATE TABLE IF NOT EXISTS Mecanico (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL
+);
 
-  CREATE TABLE IF NOT EXISTS Garantia (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tiempo INTEGER NOT NULL,
-      unidad TEXT CHECK (unidad IN ('días', 'semanas', 'meses'))  -- Define si es en días, semanas o meses
-  );
+-- Tabla Garantia permanece igual
+CREATE TABLE IF NOT EXISTS Garantia (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tiempo INTEGER NOT NULL,
+    unidad TEXT CHECK (unidad IN ('días', 'semanas', 'meses'))  -- Define si es en días, semanas o meses
+);
 
-    CREATE TABLE IF NOT EXISTS Vehiculo (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      modelo TEXT NOT NULL,
-      placa TEXT UNIQUE NOT NULL,
-      anio INTEGER NOT NULL, 
-      tipo TEXT NOT NULL,
-      cliente_id INTEGER NOT NULL,
-      FOREIGN KEY (cliente_id) REFERENCES Cliente(id) ON DELETE CASCADE
-  );
+-- Tabla Vehiculo con cliente_id como referencia al id de Cliente
+CREATE TABLE IF NOT EXISTS Vehiculo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    modelo TEXT NOT NULL,
+    placa TEXT UNIQUE NOT NULL,
+    anio INTEGER NOT NULL, 
+    tipo TEXT NOT NULL,
+    cliente_id INTEGER NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES Cliente(id) ON DELETE CASCADE
+);
 
-  CREATE TABLE IF NOT EXISTS OrdenTrabajo (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fecha DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Se registra la fecha automáticamente
-      vehiculo_id INTEGER NOT NULL,
-      mecanico_id INTEGER NOT NULL,
-      cliente_id INTEGER NOT NULL,
-      trabajo_realizado TEXT NOT NULL,
-      notas TEXT,
-      garantia_id INTEGER,
-      FOREIGN KEY (vehiculo_id) REFERENCES Vehiculo(id) ON DELETE CASCADE,
-      FOREIGN KEY (mecanico_id) REFERENCES Mecanico(id) ON DELETE CASCADE,
-      FOREIGN KEY (cliente_id) REFERENCES Cliente(id) ON DELETE CASCADE,
-      FOREIGN KEY (garantia_id) REFERENCES Garantia(id) ON DELETE SET NULL
-  );
-  `)
+-- Tabla OrdenTrabajo con cliente_id como referencia al id de Cliente
+CREATE TABLE IF NOT EXISTS OrdenTrabajo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Se registra la fecha automáticamente
+    vehiculo_id INTEGER NOT NULL,
+    mecanico_id INTEGER NOT NULL,
+    cliente_id INTEGER NOT NULL,
+    trabajo_realizado TEXT NOT NULL,
+    notas TEXT,
+    garantia_id INTEGER,
+    FOREIGN KEY (vehiculo_id) REFERENCES Vehiculo(id) ON DELETE CASCADE,
+    FOREIGN KEY (mecanico_id) REFERENCES Mecanico(id) ON DELETE CASCADE,
+    FOREIGN KEY (cliente_id) REFERENCES Cliente(id) ON DELETE CASCADE,
+    FOREIGN KEY (garantia_id) REFERENCES Garantia(id) ON DELETE SET NULL
+);
+`)
 
   return db
 }

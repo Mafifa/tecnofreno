@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Car, X, Search, User, CreditCard } from "lucide-react"
-import { useAddVehiculo } from "./hooks/vehiculos/addVehiculo"
-import { useSearchClient } from "./hooks/clientes/getCliente"
+import { useAddVehiculo } from "../hooks/vehiculos/addVehiculo"
+import { useSearchClient } from "../hooks/clientes/getCliente"
 import type { tipo } from "src/types/types"
 
 interface VehiculoModalProps {

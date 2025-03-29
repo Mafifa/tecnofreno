@@ -5,12 +5,11 @@ import Busqueda from './components/busqueda/Busqueda';
 import Historial from './components/historial/Historial';
 import Analisis from './components/analisis/Analisis';
 import Configuracion from './components/Settings/settings';
-import { Home, Package, BarChart2, Settings, RefreshCw, History } from 'lucide-react';
+import { Home, Package, BarChart2, Settings, History } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [showTooltip, setShowTooltip] = useState(false)
 
   const modoOscuro = false
 
@@ -21,9 +20,6 @@ const App: React.FC = () => {
     { id: 'analisis', name: 'Análisis', icon: BarChart2 }
   ]
 
-  const handleUpdater = async () => {
-
-  }
 
   return (
     <div className={`flex flex-col h-screen ${modoOscuro ? 'dark' : ''}`}>

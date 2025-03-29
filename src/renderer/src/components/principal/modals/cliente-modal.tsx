@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { User, CreditCard, Phone, X } from "lucide-react"
-import { useCliente } from './hooks/clientes/addCliente'
+import { useCliente } from '../hooks/clientes/addCliente'
 
 interface ClienteModalProps {
   isOpen: boolean

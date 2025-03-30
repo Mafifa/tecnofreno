@@ -1,7 +1,8 @@
 import { ipcMain } from 'electron'
-import { ClienteController } from './ClienteController'
-import { VehiculoController } from './VehiculoController'
-import { OrdenController } from './OrdenController'
+// Importa las funciones de setup de cada controlador
+import { setupClienteController } from './ClienteController'
+import { setupVehiculoController } from './VehiculoController'
+import { setupOrdenController } from './OrdenController'
 
 let controllersSetup = false
 
@@ -11,28 +12,10 @@ export function setupAllControllers(): void {
     return
   }
 
-  // Clientes
-  ipcMain.handle('cliente:create', async (_, clienteData) => {
-    return ClienteController.createCliente(clienteData)
-  })
-  ipcMain.handle('cliente:getByCedula', async (_, cedula) => {
-    return ClienteController.getByCedula(cedula)
-  })
-  ipcMain.handle('cliente:getById', async (_, cedula) => {
-    return ClienteController.getById(cedula)
-  })
-  // Vehículos
-  ipcMain.handle('vehiculo:create', async (_, vehiculoData) => {
-    return VehiculoController.createVehiculo(vehiculoData)
-  })
-  ipcMain.handle('vehiculo:getByPlaca', async (_, placa) => {
-    return VehiculoController.getByPlaca(placa)
-  })
-
-  // Órdenes de trabajo
-  ipcMain.handle('orden:detalle', async (_, ordenId) => {
-    return OrdenController.getOrdenDetalle(ordenId)
-  })
+  // Ejecuta los setups de cada controlador
+  setupClienteController(ipcMain)
+  setupVehiculoController(ipcMain)
+  setupOrdenController(ipcMain)
 
   controllersSetup = true
   console.log('All controllers initialized successfully')

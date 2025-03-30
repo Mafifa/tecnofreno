@@ -1,6 +1,5 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
-// FIXME: ARREGLAR ESTE PROBLEMA
 import { app } from 'electron'
 import path from 'path'
 import fs from 'fs'
@@ -13,7 +12,7 @@ export async function getDb() {
   if (is.dev) {
     // Development mode - project root/db directory
     dbFolderPath = path.join(process.cwd(), 'db')
-    dbFilePath = path.join(dbFolderPath, 'inventory.db')
+    dbFilePath = path.join(dbFolderPath, 'tecnofreno.db')
 
     // Create db directory if it doesn't exist
     if (!fs.existsSync(dbFolderPath)) {
@@ -23,7 +22,7 @@ export async function getDb() {
     // Production mode - userData directory
     const userDataPath = app.getPath('userData')
     dbFolderPath = path.join(userDataPath, 'db')
-    dbFilePath = path.join(dbFolderPath, 'inventory.db')
+    dbFilePath = path.join(dbFolderPath, 'tecnofreno.db')
 
     // Create db directory if it doesn't exist
     if (!fs.existsSync(dbFolderPath)) {

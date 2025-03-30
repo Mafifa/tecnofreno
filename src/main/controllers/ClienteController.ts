@@ -1,50 +1,57 @@
-import { ClienteModel, type Cliente } from '../models/ClienteModel'
+import { IpcMain } from 'electron'
+import { ClienteModel } from '../models/ClienteModel'
 
-export class ClienteController {
-  static async createCliente(clienteData: Omit<Cliente, 'id'>): Promise<Cliente> {
+export function setupClienteController(ipcMain: IpcMain): void {
+  ipcMain.handle('cliente:create', async (_, clienteData) => {
     try {
       return await ClienteModel.create(clienteData)
     } catch (error) {
-      console.error('Database Error:', error)
-      throw new Error(`Error creating client: ${error.message}`)
+      console.error('Error creando cliente:', error)
+      throw new Error(`Error al crear cliente: ${error.message}`)
     }
-  }
+  })
 
-  static async getByCedula(cedula: string): Promise<Cliente | undefined> {
-    console.log('cedula desde el controlador:', cedula)
-
+  ipcMain.handle('cliente:getByCedula', async (_, cedula) => {
     try {
       const cliente = await ClienteModel.findByCedula(cedula)
       if (!cliente) {
-        throw new Error(`Cliente no encontrado con cédula/RIF: ${cedula}`)
+        throw new Error(`Cliente no encontrado con cédula: ${cedula}`)
       }
       return cliente
     } catch (error) {
-      console.error('Database Error:', error)
+      console.error('Error buscando cliente por cédula:', error)
       throw new Error(
         error.message.includes('no encontrado')
           ? error.message
-          : 'Error buscando cliente. Verifique el formato de la cédula (Ej: V-12345678)'
+          : 'Formato de cédula inválido (Ej: V-12345678)'
       )
     }
-  }
+  })
 
-  static async getById(id: number): Promise<Cliente | undefined> {
-    console.log('id desde el controlador:', id)
-
+  ipcMain.handle('cliente:getById', async (_, id) => {
     try {
       const cliente = await ClienteModel.findById(id)
       if (!cliente) {
-        throw new Error(`Cliente no encontrado con el id: ${id}`)
+        throw new Error(`Cliente no encontrado con ID: ${id}`)
       }
       return cliente
     } catch (error) {
-      console.error('Database Error:', error)
-      throw new Error(
-        error.message.includes('no encontrado')
-          ? error.message
-          : 'Error buscando cliente. Verifique el formato del id'
-      )
+      console.error('Error buscando cliente por ID:', error)
+      throw new Error('ID de cliente inválido')
     }
-  }
+  })
+
+  // Nuevo manejador para buscar clientes por nombre
+  ipcMain.handle('cliente:findByName', async (_, name) => {
+    try {
+      const clientes = await ClienteModel.findByName(name)
+      if (clientes.length === 0) {
+        throw new Error(`No se encontraron clientes con el nombre: ${name}`)
+      }
+      return clientes
+    } catch (error) {
+      console.error('Error buscando clientes por nombre:', error)
+      throw new Error(`Error al buscar clientes: ${error.message}`)
+    }
+  })
 }

@@ -1,14 +1,11 @@
-"use client"
-
 import type React from "react"
-
 interface ModalContainerProps {
   isOpen: boolean
   onOutsideClick: (e: React.MouseEvent<HTMLDivElement>) => void
   children: React.ReactNode
 }
 
-export default function ModalContainer({ isOpen, onOutsideClick, children }: ModalContainerProps) {
+export default function ModalContainer ({ isOpen, onOutsideClick, children }: ModalContainerProps) {
   if (!isOpen) return null
 
   return (

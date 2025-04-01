@@ -1,18 +1,14 @@
-"use client"
 
 import { useState } from "react"
 import { Search, Calendar, Car } from "lucide-react"
-import { buscarOrdenesPorPlaca } from "./servicios-mock"
-
-interface OrdenTrabajo {
-  id: string
-  fecha: string
-  trabajo_realizado: string
-  // ... other properties
-}
-
 interface BusquedaPlacaProps {
   onVerDetalle: any
+}
+
+const buscarOrdenesPorPlaca = async (placa: string) => {
+
+  return await window.electron.ipcRenderer.invoke('orden:getByPlaca', placa) as OrdenTrabajo[]
+
 }
 
 export default function BusquedaPlaca ({ onVerDetalle }: BusquedaPlacaProps) {

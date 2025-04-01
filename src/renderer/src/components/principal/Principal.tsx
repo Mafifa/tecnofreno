@@ -1,8 +1,5 @@
-"use client"
-
 import type React from "react"
-
-import { useState } from "react"
+import { useReducer, useCallback } from "react"
 import ClienteModal from "./modals/cliente-modal"
 import VehiculoModal from "./modals/vehiculo-modal"
 import DetalleOrdenModal from "./modals/detalle-orden-modal"
@@ -16,141 +13,77 @@ import TrabajoModal from "./modals/trabajo-modal"
 import NotaModal from "./modals/nota-modal"
 import MecanicoModal from "./modals/mecanico-modal"
 
-interface OrdenTrabajo {
-  id: number
-  fecha: string
-  trabajo_realizado: string
-  notas?: string
-}
-
-// Dummy function, replace with actual implementation
-const buscarOrdenesPorPlaca = async (placa: string): Promise<OrdenTrabajo[]> => {
-  return []
-}
+// Importar el estado y las acciones
+import { reducer, initialState } from "./state/reducer"
+import { actions } from "./state/actions"
 
 export default function Principal () {
-  // Modal states
-  const [isTrabajoModalOpen, setTrabajoModalOpen] = useState(false)
-  const [isNotaModalOpen, setNotaModalOpen] = useState(false)
-  const [isMecanicoModalOpen, setMecanicoModalOpen] = useState(false)
-  const [isClienteModalOpen, setClienteModalOpen] = useState(false)
-  const [isVehiculoModalOpen, setVehiculoModalOpen] = useState(false)
-  const [isDetalleModalOpen, setDetalleModalOpen] = useState(false)
-
-  // Form data states
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0])
-  const [mecanico, setMecanico] = useState("")
-  const [mecanicos, setMecanicos] = useState(["Juan", "Pedro", "Luis", "Carlos"])
-  const [filteredMecanicos, setFilteredMecanicos] = useState<string[]>([])
-  const [trabajoRealizado, setTrabajoRealizado] = useState("")
-  const [nota, setNota] = useState("")
-  const [placa, setPlaca] = useState("")
-  const [datos, setDatos] = useState<any>({})
-  const [garantiaTiempo, setGarantiaTiempo] = useState("")
-  const [garantiaUnidad, setGarantiaUnidad] = useState("dias")
-
-  // Search states
-  const [resultadosOrdenes, setResultadosOrdenes] = useState<OrdenTrabajo[]>([])
-  const [buscandoOrdenes, setBuscandoOrdenes] = useState(false)
-  const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null)
-  const [ordenSeleccionada, setOrdenSeleccionada] = useState<OrdenTrabajo | null>(null)
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   // Hooks
-  const { searchByPlaca } = useSearchVehiculo(placa)
+  const { searchByPlaca } = useSearchVehiculo(state.form.placa)
 
+  // Handlers con action creators
   const handleMecanicoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setMecanico(value)
-    if (value) {
-      setFilteredMecanicos(mecanicos.filter((m) => m.toLowerCase().includes(value.toLowerCase())))
-    } else {
-      setFilteredMecanicos([])
-    }
+    dispatch({ type: "UPDATE_FORM", field: "mecanico", value: e.target.value })
   }
+
+  const handleSearchMecanicos = useCallback((query: string) => {
+    actions.buscarMecanicos(query)(dispatch)
+  }, [])
 
   const handlePlacaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlaca(e.target.value.toUpperCase())
+    dispatch({ type: "UPDATE_FORM", field: "placa", value: e.target.value.toUpperCase() })
   }
 
-  const handleBuscarPlaca = async () => {
-    if (!placa.trim()) {
-      setErrorBusqueda("Por favor ingrese una placa para buscar")
-      return
-    }
-
-    try {
-      const vehiculo = searchByPlaca
-      if (vehiculo.data) {
-        setErrorBusqueda(null)
-
-        const cliente = await window.electron.ipcRenderer.invoke("cliente:getById", vehiculo.data.cliente_id)
-
-        setDatos({
-          vehiculo: vehiculo.data.modelo,
-          cliente: cliente.nombre,
-          cedula: cliente.cedula_rif,
-        })
-      } else {
-        setErrorBusqueda("No se encontró un vehículo con esta placa")
-      }
-    } catch (error) {
-      const err = error as Error
-      console.log(err.message)
-      setErrorBusqueda("Error al buscar el vehículo. Intente nuevamente.")
-    }
-
-    setBuscandoOrdenes(true)
-    setErrorBusqueda(null)
-
-    try {
-      const ordenes = await buscarOrdenesPorPlaca(placa)
-      setResultadosOrdenes(ordenes)
-
-      if (ordenes.length === 0) {
-        setErrorBusqueda("No se encontraron órdenes para esta placa")
-      }
-    } catch (err) {
-      setErrorBusqueda("Error al buscar órdenes. Intente nuevamente.")
-      console.error(err)
-    } finally {
-      setBuscandoOrdenes(false)
-    }
-  }
+  // Usar action creators para lógica compleja
+  const handleBuscarPlaca = useCallback(async () => {
+    await actions.buscarPorPlaca(state.form.placa, searchByPlaca)(dispatch)
+  }, [state.form.placa, searchByPlaca])
 
   const handleVerDetalleOrden = (orden: OrdenTrabajo) => {
-    setOrdenSeleccionada(orden)
-    setDetalleModalOpen(true)
+    dispatch({ type: "SELECT_ORDEN", orden })
+    dispatch({ type: "TOGGLE_MODAL", modalName: "detalle", value: true })
   }
 
-  const handleSave = () => {
-    console.log("Datos guardados")
-  }
+  const handleSave = useCallback(async () => {
+    await actions.guardarOrden()(dispatch, () => state)
+  }, [state])
 
-  const handleSaveCliente = (clienteData: { nombre: string; cedula: string; telefono: string }) => {
-    console.log("Cliente guardado:", clienteData)
-    setClienteModalOpen(false)
-  }
+  const handleSaveCliente = useCallback(async (clienteData: Omit<Cliente, 'id'>) => {
+    await actions.guardarCliente(clienteData)(dispatch)
+  }, [])
 
-  const handleSaveVehiculo = (vehiculoData: {
-    modelo: string
-    placa: string
-    anio: string
-    tipo: string
-    clienteId: string
-  }) => {
-    console.log("Vehículo guardado:", vehiculoData)
-    setVehiculoModalOpen(false)
-  }
+  const handleSaveVehiculo = useCallback(async (vehiculoData: Omit<Vehiculo, 'id'>) => {
+    await actions.guardarVehiculo(vehiculoData)(dispatch)
+  }, [])
+
+  const handleSaveMecanico = useCallback(async (nombre: string) => {
+    await actions.guardarMecanico(nombre)(dispatch)
+  }, [])
+
+  const handleSelectMecanico = useCallback((mecanico: Mecanico) => {
+    dispatch({ type: "SELECT_MECANICO", mecanico })
+  }, [])
 
   const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
-      setTrabajoModalOpen(false)
-      setNotaModalOpen(false)
-      setMecanicoModalOpen(false)
-      setClienteModalOpen(false)
-      setVehiculoModalOpen(false)
+      // Cerrar todos los modales
+      Object.keys(state.modals).forEach((modalName) => {
+        dispatch({
+          type: "TOGGLE_MODAL",
+          modalName: modalName as keyof typeof state.modals,
+          value: false,
+        })
+      })
     }
   }
+
+  // Verificar si algún modal está abierto
+  const isAnyModalOpen = Object.values(state.modals).some((isOpen) => isOpen)
+
+  // Verificar si se está guardando (garantía u orden)
+  const isGuardando = state.search.guardandoGarantia || state.search.guardandoOrden
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200">
@@ -160,106 +93,140 @@ export default function Principal () {
           <div className="lg:w-2/3">
             <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg transition-colors duration-200">
               <FormHeader
-                onClienteModalOpen={() => setClienteModalOpen(true)}
-                onVehiculoModalOpen={() => setVehiculoModalOpen(true)}
-                fecha={fecha}
-                onFechaChange={(e) => setFecha(e.target.value)}
+                onClienteModalOpen={() => dispatch({ type: "TOGGLE_MODAL", modalName: "cliente", value: true })}
+                onVehiculoModalOpen={() => dispatch({ type: "TOGGLE_MODAL", modalName: "vehiculo", value: true })}
+                fecha={state.form.fecha}
+                onFechaChange={(e) => dispatch({ type: "UPDATE_FORM", field: "fecha", value: e.target.value })}
               />
 
               <FormFields
-                datos={datos}
-                placa={placa}
+                datos={state.form.datos}
+                placa={state.form.placa}
                 onPlacaChange={handlePlacaChange}
                 onBuscarPlaca={handleBuscarPlaca}
-                buscandoOrdenes={buscandoOrdenes}
-                errorBusqueda={errorBusqueda}
-                mecanico={mecanico}
+                buscandoOrdenes={state.search.buscando}
+                errorBusqueda={state.search.error}
+                mecanico={state.form.mecanico}
                 onMecanicoChange={handleMecanicoChange}
-                onMecanicoModalOpen={() => setMecanicoModalOpen(true)}
-                filteredMecanicos={filteredMecanicos}
-                onSelectMecanico={(m) => {
-                  setMecanico(m)
-                  setFilteredMecanicos([])
-                }}
-                garantiaTiempo={garantiaTiempo}
-                onGarantiaTiempoChange={(e) => setGarantiaTiempo(e.target.value)}
-                garantiaUnidad={garantiaUnidad}
-                onGarantiaUnidadChange={(e) => setGarantiaUnidad(e.target.value)}
+                onMecanicoModalOpen={() => dispatch({ type: "TOGGLE_MODAL", modalName: "mecanico", value: true })}
+                filteredMecanicos={state.filteredMecanicos}
+                onSelectMecanico={handleSelectMecanico}
+                garantiaTiempo={state.form.garantia.tiempo}
+                onGarantiaTiempoChange={(e) =>
+                  dispatch({ type: "UPDATE_GARANTIA", field: "tiempo", value: e.target.value })
+                }
+                garantiaUnidad={state.form.garantia.unidad}
+                onGarantiaUnidadChange={(e) =>
+                  dispatch({ type: "UPDATE_GARANTIA", field: "unidad", value: e.target.value })
+                }
+                onSearchMecanicos={handleSearchMecanicos}
+                buscandoMecanicos={state.search.buscandoMecanicos}
               />
 
               <TrabajoNotaSection
-                trabajoRealizado={trabajoRealizado}
-                nota={nota}
-                onTrabajoClick={() => setTrabajoModalOpen(true)}
-                onNotaClick={() => setNotaModalOpen(true)}
+                trabajoRealizado={state.form.trabajoRealizado}
+                nota={state.form.nota}
+                onTrabajoClick={() => dispatch({ type: "TOGGLE_MODAL", modalName: "trabajo", value: true })}
+                onNotaClick={() => dispatch({ type: "TOGGLE_MODAL", modalName: "nota", value: true })}
               />
 
               <button
                 onClick={handleSave}
-                className="mt-8 w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200 text-lg font-semibold"
+                disabled={isGuardando}
+                className="mt-8 w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200 text-lg font-semibold disabled:bg-blue-400 disabled:cursor-not-allowed"
               >
-                Guardar
+                {isGuardando ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <span>{state.search.guardandoGarantia ? "Registrando garantía..." : "Guardando orden..."}</span>
+                  </div>
+                ) : (
+                  "Guardar"
+                )}
               </button>
+
+              {/* Información de depuración (opcional, puedes quitar esto en producción) */}
+              {process.env.NODE_ENV === "development" && (
+                <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
+                  <details>
+                    <summary className="cursor-pointer font-medium">Datos para depuración</summary>
+                    <pre className="mt-2 overflow-auto max-h-40">
+                      {JSON.stringify(
+                        {
+                          fecha: state.form.fecha,
+                          mecanico: state.form.mecanico,
+                          mecanicoId: state.form.mecanicoId,
+                          vehiculoId: state.form.datos.vehiculoId,
+                          clienteId: state.form.datos.clienteId,
+                          garantia: state.form.garantia,
+                        },
+                        null,
+                        2,
+                      )}
+                    </pre>
+                  </details>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Panel lateral de resultados */}
           <div className="lg:w-1/3">
-            {resultadosOrdenes.length > 0 && (
-              <ResultadosLateral resultados={resultadosOrdenes} onVerDetalle={handleVerDetalleOrden} />
+            {state.search.resultados.length > 0 && (
+              <ResultadosLateral resultados={state.search.resultados} onVerDetalle={handleVerDetalleOrden} />
             )}
           </div>
         </div>
       </div>
 
       {/* Modales */}
-      <ModalContainer
-        isOpen={
-          isTrabajoModalOpen || isNotaModalOpen || isMecanicoModalOpen || isClienteModalOpen || isVehiculoModalOpen
-        }
-        onOutsideClick={handleOutsideClick}
-      >
-        {isTrabajoModalOpen && (
+      <ModalContainer isOpen={isAnyModalOpen} onOutsideClick={handleOutsideClick}>
+        {state.modals.trabajo && (
           <TrabajoModal
-            trabajo={trabajoRealizado}
-            onTrabajoChange={(e) => setTrabajoRealizado(e.target.value)}
-            onClose={() => setTrabajoModalOpen(false)}
+            trabajo={state.form.trabajoRealizado}
+            onTrabajoChange={(e) => dispatch({ type: "UPDATE_FORM", field: "trabajoRealizado", value: e.target.value })}
+            onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "trabajo", value: false })}
           />
         )}
 
-        {isNotaModalOpen && (
+        {state.modals.nota && (
           <NotaModal
-            nota={nota}
-            onNotaChange={(e) => setNota(e.target.value)}
-            onClose={() => setNotaModalOpen(false)}
+            nota={state.form.nota}
+            onNotaChange={(e) => dispatch({ type: "UPDATE_FORM", field: "nota", value: e.target.value })}
+            onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "nota", value: false })}
           />
         )}
 
-        {isMecanicoModalOpen && <MecanicoModal onClose={() => setMecanicoModalOpen(false)} />}
+        {state.modals.mecanico && (
+          <MecanicoModal
+            onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "mecanico", value: false })}
+            onSave={handleSaveMecanico}
+          />
+        )}
 
-        {isClienteModalOpen && (
+        {state.modals.cliente && (
           <ClienteModal
-            isOpen={isClienteModalOpen}
-            onClose={() => setClienteModalOpen(false)}
+            isOpen={state.modals.cliente}
+            onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "cliente", value: false })}
             onSave={handleSaveCliente}
           />
         )}
 
-        {isVehiculoModalOpen && (
+        {state.modals.vehiculo && (
           <VehiculoModal
-            isOpen={isVehiculoModalOpen}
-            onClose={() => setVehiculoModalOpen(false)}
+            isOpen={state.modals.vehiculo}
+            onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "vehiculo", value: false })}
             onSave={handleSaveVehiculo}
           />
         )}
       </ModalContainer>
 
       {/* Modal de detalle de orden */}
-      {ordenSeleccionada && (
+      {state.ordenSeleccionada && (
         <DetalleOrdenModal
-          orden={ordenSeleccionada}
-          isOpen={isDetalleModalOpen}
-          onClose={() => setDetalleModalOpen(false)}
+          orden={state.ordenSeleccionada}
+          isOpen={state.modals.detalle}
+          onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "detalle", value: false })}
         />
       )}
     </div>

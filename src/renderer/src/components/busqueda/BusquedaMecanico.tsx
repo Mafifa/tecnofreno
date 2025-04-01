@@ -1,26 +1,19 @@
-"use client"
-
 import type React from "react"
-
 import { useState } from "react"
 import { Search, Calendar, PenToolIcon as Tool } from "lucide-react"
-import { buscarOrdenesPorMecanico, buscarMecanicos } from "./servicios-mock"
-
-interface OrdenTrabajo {
-  id: number
-  fecha: string
-  trabajo_realizado: string
-  mecanico_id: number
-}
-
-interface Mecanico {
-  id: number
-  nombre: string
-}
 
 interface BusquedaMecanicoProps {
   onVerDetalle: any
 }
+
+const buscarMecanicos = async (): Promise<Mecanico[]> => {
+  return []
+}
+
+const buscarOrdenesPorMecanico = async (id: number): Promise<OrdenTrabajo[]> => {
+  return []
+}
+
 
 export default function BusquedaMecanico ({ onVerDetalle }: BusquedaMecanicoProps) {
   const [nombreMecanico, setNombreMecanico] = useState("")

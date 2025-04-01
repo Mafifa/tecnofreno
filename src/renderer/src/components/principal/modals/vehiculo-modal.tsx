@@ -1,10 +1,8 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import { Car, X, Search, User, CreditCard } from "lucide-react"
+import { Car, X, User } from "lucide-react"
 import { useAddVehiculo } from "../hooks/vehiculos/addVehiculo"
-import { useSearchClient } from "../hooks/clientes/getCliente"
 import type { tipo } from "src/types/types"
+import { useSearchClient } from "../hooks/clientes/getCliente"
 
 interface VehiculoModalProps {
   isOpen: boolean
@@ -13,42 +11,43 @@ interface VehiculoModalProps {
 }
 
 export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModalProps) {
-  const [cedulaBusqueda, setCedulaBusqueda] = useState("")
-  const [cedulaPrefix, setCedulaPrefix] = useState("V")
+  const [nombreBusqueda, setNombreBusqueda] = useState("")
   const [modelo, setModelo] = useState("")
   const [placa, setPlaca] = useState("")
   const [anio, setAnio] = useState("")
   const [tipo, setTipo] = useState<tipo>("Sedan")
-  const [loading, setLoading] = useState(false)
   const [clienteEncontrado, setClienteEncontrado] = useState<Cliente | null>(null)
+  const [clientesSugeridos, setClientesSugeridos] = useState<Cliente[]>([])
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false)
   const { addVehiculo, error: vehiculoError, isLoading: loadingVehiculo } = useAddVehiculo()
-  const [cedulaCompleta, setCedulaCompleta] = useState("")
-  const { searchByCedula } = useSearchClient(cedulaCompleta)
-
-  const handleBuscarCliente = async () => {
-    if (!cedulaBusqueda.trim()) return
-
-    // Concatenate the prefix, hyphen, and cédula number
-    const nuevaCedulaCompleta = `${cedulaPrefix}-${cedulaBusqueda}`
-    setCedulaCompleta(nuevaCedulaCompleta)
-  }
+  const { data, search, loading: isLoading } = useSearchClient()
 
   useEffect(() => {
-    const buscarCliente = async () => {
-      if (!cedulaCompleta) return
+    if (data?.length) {
+      setClientesSugeridos(data)
+      setMostrarSugerencias(true)
+    }
+  }, [data])
 
-      try {
-        setLoading(searchByCedula.isFetching)
-        if (searchByCedula.data) {
-          setClienteEncontrado(searchByCedula.data)
-        }
-      } catch (error) {
-        console.error("Error buscando cliente:", error)
-      }
+  useEffect(() => {
+    if (nombreBusqueda.length < 3) {
+      setClientesSugeridos([])
+      setMostrarSugerencias(false)
+      return
     }
 
-    buscarCliente()
-  }, [cedulaCompleta, searchByCedula])
+    const timer = setTimeout(() => {
+      search(nombreBusqueda)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [nombreBusqueda])
+
+  const handleSelectCliente = (cliente: Cliente) => {
+    setClienteEncontrado(cliente)
+    setNombreBusqueda(cliente.nombre)
+    setMostrarSugerencias(false)
+  }
 
   const handleSave = async () => {
     if (!clienteEncontrado?.id) return
@@ -57,11 +56,10 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
       const nuevoVehiculo = await addVehiculo.mutateAsync({
         modelo,
         placa,
-        anio: Number.parseInt(anio),
+        anio: anio,
         tipo,
-        clienteId: clienteEncontrado.id,
+        cliente_id: clienteEncontrado.id,
       })
-
       onSave(nuevoVehiculo)
       handleClose()
     } catch (error) {
@@ -71,10 +69,10 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
   }
 
   const handleClose = () => {
-    setCedulaBusqueda("")
-    setCedulaPrefix("V") // Reset to default prefix
-    setCedulaCompleta("")
+    setNombreBusqueda("")
     setClienteEncontrado(null)
+    setClientesSugeridos([])
+    setMostrarSugerencias(false)
     setModelo("")
     setPlaca("")
     setAnio("")
@@ -83,7 +81,6 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
   }
 
   if (!isOpen) return null
-
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
@@ -97,56 +94,59 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
       </div>
 
       <div className="mb-6">
-        <label htmlFor="cedulaBusqueda" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Buscar Cliente por Cédula
+        <label htmlFor="nombreBusqueda" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          Buscar Cliente por Nombre
         </label>
-        <div className="flex mb-3">
-          <select
-            value={cedulaPrefix}
-            onChange={(e) => setCedulaPrefix(e.target.value)}
-            className="pl-2 pr-2 py-2 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value="V">V</option>
-            <option value="J">J</option>
-            <option value="E">E</option>
-          </select>
-          <div className="flex items-center px-2 border-t border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            -
-          </div>
-          <div className="relative flex-1">
-            <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              id="cedulaBusqueda"
-              value={cedulaBusqueda}
-              onChange={(e) => setCedulaBusqueda(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-r-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Ingrese número de cédula"
-            />
-          </div>
-          <button
-            onClick={handleBuscarCliente}
-            disabled={loading}
-            className="ml-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200 flex items-center justify-center disabled:bg-blue-400"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <Search size={18} />
-            )}
-          </button>
-        </div>
-
-        <div className="relative mb-2">
+        <div className="relative mb-3">
           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            value={clienteEncontrado?.nombre || ""}
-            readOnly
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 cursor-not-allowed text-gray-700 dark:text-gray-300"
-            placeholder="Nombre del cliente"
+            id="nombreBusqueda"
+            value={nombreBusqueda}
+            onChange={(e) => setNombreBusqueda(e.target.value)}
+            onFocus={() => nombreBusqueda.length >= 3 && setMostrarSugerencias(true)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            placeholder="Ingrese nombre del cliente (mínimo 3 caracteres)"
           />
+          {isLoading && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+
+          {/* Lista de sugerencias - Rediseñada para ser más compacta y vertical */}
+          {mostrarSugerencias && clientesSugeridos.length > 0 && (
+            <div className="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto mt-1">
+              {clientesSugeridos.map((cliente) => (
+                <div
+                  key={cliente.id}
+                  onClick={() => handleSelectCliente(cliente)}
+                  className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+                >
+                  <div className="text-gray-900 dark:text-white font-medium">{cliente.nombre}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {clienteEncontrado && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800 mt-2">
+            <div className="flex justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Cliente seleccionado:</span>
+              <button
+                onClick={() => {
+                  setClienteEncontrado(null)
+                  setNombreBusqueda("")
+                }}
+                className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              >
+                Cambiar
+              </button>
+            </div>
+            <div className="mt-1 text-gray-900 dark:text-white font-medium">{clienteEncontrado.nombre}</div>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-gray-300 dark:border-gray-600 my-4"></div>
@@ -209,7 +209,6 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
             disabled={!clienteEncontrado}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value="">Seleccionar tipo</option>
             <option value="Camioneta">Camioneta</option>
             <option value="Sedan">Sedan</option>
             <option value="Autobus">Autobus</option>

@@ -1,7 +1,4 @@
-"use client"
-
 import { PenToolIcon as Tool, FileText, Plus } from "lucide-react"
-
 interface TrabajoNotaSectionProps {
   trabajoRealizado: string
   nota: string
@@ -9,7 +6,7 @@ interface TrabajoNotaSectionProps {
   onNotaClick: () => void
 }
 
-export default function TrabajoNotaSection({
+export default function TrabajoNotaSection ({
   trabajoRealizado,
   nota,
   onTrabajoClick,
@@ -18,11 +15,10 @@ export default function TrabajoNotaSection({
   return (
     <div className="grid grid-cols-2 gap-6 mt-6">
       <div
-        className={`col-span-2 sm:col-span-1 p-4 rounded-lg cursor-pointer transition-all duration-200 ${
-          trabajoRealizado
+        className={`col-span-2 sm:col-span-1 p-4 rounded-lg cursor-pointer transition-all duration-200 ${trabajoRealizado
             ? "bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800"
             : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-        }`}
+          }`}
         onClick={onTrabajoClick}
       >
         <div className="flex justify-between items-center mb-2">
@@ -37,11 +33,10 @@ export default function TrabajoNotaSection({
         )}
       </div>
       <div
-        className={`col-span-2 sm:col-span-1 p-4 rounded-lg cursor-pointer transition-all duration-200 ${
-          nota
+        className={`col-span-2 sm:col-span-1 p-4 rounded-lg cursor-pointer transition-all duration-200 ${nota
             ? "bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800"
             : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-        }`}
+          }`}
         onClick={onNotaClick}
       >
         <div className="flex justify-between items-center mb-2">

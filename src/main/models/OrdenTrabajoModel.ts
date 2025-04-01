@@ -1,16 +1,5 @@
 import { getDb } from './db'
 
-export interface OrdenTrabajoDetallada {
-  id: number
-  fecha: string
-  trabajo_realizado: string
-  notas?: string
-  cliente_id: number
-  vehiculo_id: number
-  mecanico_id: number
-  garantia_id?: number
-}
-
 export class OrdenTrabajoModel {
   static async getById(id: number) {
     const db = await getDb()
@@ -38,40 +27,46 @@ export class OrdenTrabajoModel {
     )
   }
   // Crear orden
-  static async create(ordenData: {
-    fecha: string
-    trabajo_realizado: string
-    notas?: string
-    cliente_id: number
-    vehiculo_id: number
-    mecanico_id: number
-    garantia_id?: number
-  }) {
+  static async create(ordenData: Omit<OrdenTrabajo, 'id'>) {
     const db = await getDb()
     const result = await db.run(
       `
       INSERT INTO OrdenTrabajo (
         fecha,
-        trabajo_realizado,
-        notas,
-        cliente_id,
         vehiculo_id,
         mecanico_id,
+        cliente_id,
+        trabajo_realizado,
+        notas,
         garantia_id
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
       [
         ordenData.fecha,
-        ordenData.trabajo_realizado,
-        ordenData.notas || null,
-        ordenData.cliente_id,
         ordenData.vehiculo_id,
         ordenData.mecanico_id,
+        ordenData.cliente_id,
+        ordenData.trabajo_realizado,
+        ordenData.notas || null,
         ordenData.garantia_id || null
       ]
     )
 
     // Retornar el ID de la nueva orden creada
     return { id: result.lastID }
+  }
+
+  static async getByPlaca(placa: string): Promise<OrdenTrabajo[]> {
+    const db = await getDb()
+    const query = `
+    SELECT ot.*
+    FROM OrdenTrabajo ot
+    INNER JOIN Vehiculo v ON ot.vehiculo_id = v.id
+    WHERE v.placa = ?
+    ORDER BY ot.fecha DESC
+    LIMIT 5
+  `
+    const ordenes = await db.all(query, [placa])
+    return ordenes
   }
 }

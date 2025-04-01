@@ -3,6 +3,8 @@ import { ipcMain } from 'electron'
 import { setupClienteController } from './ClienteController'
 import { setupVehiculoController } from './VehiculoController'
 import { setupOrdenController } from './OrdenController'
+import { setupMecanicosController } from './MecanicosController'
+import { setupGarantiaController } from './GarantiaController'
 
 let controllersSetup = false
 
@@ -16,6 +18,8 @@ export function setupAllControllers(): void {
   setupClienteController(ipcMain)
   setupVehiculoController(ipcMain)
   setupOrdenController(ipcMain)
+  setupMecanicosController(ipcMain)
+  setupGarantiaController(ipcMain)
 
   controllersSetup = true
   console.log('All controllers initialized successfully')

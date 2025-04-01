@@ -5,7 +5,7 @@ export const useAddVehiculo = () => {
   const [error, setError] = useState<string | null>(null)
 
   const addVehiculo = useMutation({
-    mutationFn: async (vehiculoData: Omit<Vehiculo, 'id'> & { clienteId: number }) => {
+    mutationFn: async (vehiculoData: Omit<Vehiculo, 'id'>) => {
       return window.electron.ipcRenderer.invoke('vehiculo:create', vehiculoData)
     },
     onError: (err: Error) => setError(err.message)

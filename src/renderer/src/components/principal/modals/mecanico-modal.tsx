@@ -1,19 +1,34 @@
-"use client"
-
 import { X } from "lucide-react"
 import { useState } from "react"
 
 interface MecanicoModalProps {
   onClose: () => void
+  onSave: (nombre: string) => void
 }
 
-export default function MecanicoModal({ onClose }: MecanicoModalProps) {
+export default function MecanicoModal ({ onClose, onSave }: MecanicoModalProps) {
   const [nombreMecanico, setNombreMecanico] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSave = () => {
-    // Aquí iría la lógica para guardar el mecánico
-    console.log("Mecánico guardado:", nombreMecanico)
-    onClose()
+  const handleSave = async () => {
+    if (!nombreMecanico.trim()) {
+      setError("El nombre del mecánico es requerido")
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      onSave(nombreMecanico)
+      // El cierre del modal se maneja en la acción
+    } catch (err) {
+      setError("Error al guardar el mecánico")
+      console.error("Error al guardar mecánico:", err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -30,6 +45,13 @@ export default function MecanicoModal({ onClose }: MecanicoModalProps) {
           <X size={24} />
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
+          {error}
+        </div>
+      )}
+
       <input
         type="text"
         value={nombreMecanico}
@@ -39,9 +61,17 @@ export default function MecanicoModal({ onClose }: MecanicoModalProps) {
       />
       <button
         onClick={handleSave}
-        className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200"
+        disabled={isLoading}
+        className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200 disabled:bg-blue-400 disabled:cursor-not-allowed"
       >
-        Guardar
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+            <span>Guardando...</span>
+          </div>
+        ) : (
+          "Guardar"
+        )}
       </button>
     </div>
   )

@@ -1,7 +1,4 @@
-"use client"
-
 import type React from "react"
-
 import { X } from "lucide-react"
 
 interface TrabajoModalProps {
@@ -10,7 +7,7 @@ interface TrabajoModalProps {
   onClose: () => void
 }
 
-export default function TrabajoModal({ trabajo, onTrabajoChange, onClose }: TrabajoModalProps) {
+export default function TrabajoModal ({ trabajo, onTrabajoChange, onClose }: TrabajoModalProps) {
   return (
     <div
       className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md transition-colors duration-200"

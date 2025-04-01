@@ -1,5 +1,4 @@
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import {
   X,
@@ -14,39 +13,23 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-interface OrdenTrabajo {
-  id: number
-  fecha: string
-  trabajo_realizado: string
-  notas?: string
-}
-
-interface Cliente {
-  nombre: string
-  cedula_rif: string
-  telefono: string
-}
-
-interface Vehiculo {
-  modelo: string
-  placa: string
-  anio: string | number
-  tipo: string
-}
-
-interface Mecanico {
-  nombre: string
-}
-
-interface Garantia {
-  tiempo: number
-  unidad: string
-}
-
 interface DetalleOrdenModalProps {
   orden: OrdenTrabajo
   isOpen: boolean
   onClose: () => void
+}
+
+const obtenerDetalleOrden = async (orden: OrdenTrabajo) => {
+  const [cliente, vehiculo, mecanico, garantia] = await Promise.all([
+    window.electron.ipcRenderer.invoke('cliente:getById', orden.cliente_id) as Promise<Cliente>,
+    window.electron.ipcRenderer.invoke('vehiculo:getById', orden.vehiculo_id) as Promise<Vehiculo>,
+    window.electron.ipcRenderer.invoke('mecanico:getById', orden.mecanico_id) as Promise<Mecanico>,
+    orden.garantia_id
+      ? window.electron.ipcRenderer.invoke('garantia:getById', orden.garantia_id) as Promise<Garantia>
+      : Promise.resolve(undefined)
+  ])
+
+  return { orden, cliente, vehiculo, mecanico, garantia }
 }
 
 export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOrdenModalProps) {
@@ -67,7 +50,7 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
       setError(null)
 
       try {
-        const detalle = await obtenerDetalleOrden(orden.id)
+        const detalle = await obtenerDetalleOrden(orden)
         setDetalleCompleto(detalle)
       } catch (err) {
         setError("Error al cargar los detalles. Intente nuevamente.")
@@ -258,12 +241,6 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
                     <span className="text-gray-600 dark:text-gray-400 col-span-1">Nombre:</span>
                     <span className="text-gray-800 dark:text-white font-medium col-span-2">
                       {detalleCompleto.cliente.nombre}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <span className="text-gray-600 dark:text-gray-400 col-span-1">Cédula/RIF:</span>
-                    <span className="text-gray-800 dark:text-white font-medium col-span-2">
-                      {detalleCompleto.cliente.cedula_rif}
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">

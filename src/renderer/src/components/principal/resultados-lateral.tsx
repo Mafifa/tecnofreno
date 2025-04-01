@@ -1,12 +1,6 @@
 import { Calendar, Wrench, Clock } from "lucide-react"
 import { Car } from "lucide-react"
 
-interface OrdenTrabajo {
-  id: number
-  fecha: string
-  trabajo_realizado: string
-}
-
 interface ResultadosLateralProps {
   resultados: OrdenTrabajo[]
   onVerDetalle: (orden: OrdenTrabajo) => void

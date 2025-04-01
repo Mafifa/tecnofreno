@@ -1,7 +1,4 @@
-"use client"
-
 import type React from "react"
-
 import { X } from "lucide-react"
 
 interface NotaModalProps {
@@ -10,7 +7,7 @@ interface NotaModalProps {
   onClose: () => void
 }
 
-export default function NotaModal({ nota, onNotaChange, onClose }: NotaModalProps) {
+export default function NotaModal ({ nota, onNotaChange, onClose }: NotaModalProps) {
   return (
     <div
       className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md transition-colors duration-200"

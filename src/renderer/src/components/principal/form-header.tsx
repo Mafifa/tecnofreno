@@ -1,7 +1,4 @@
-"use client"
-
 import type React from "react"
-
 import { Calendar, UserPlus, CarFront } from "lucide-react"
 
 interface FormHeaderProps {
@@ -11,7 +8,7 @@ interface FormHeaderProps {
   onFechaChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-export default function FormHeader({ onClienteModalOpen, onVehiculoModalOpen, fecha, onFechaChange }: FormHeaderProps) {
+export default function FormHeader ({ onClienteModalOpen, onVehiculoModalOpen, fecha, onFechaChange }: FormHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-8">
       {/* Botones para agregar cliente y vehículo */}

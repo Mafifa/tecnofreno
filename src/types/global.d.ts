@@ -7,17 +7,17 @@ declare global {
   // Vehículo registrado en el taller
   export interface Vehiculo {
     id: number
-    modelo: string // Ejemplo: "4Runner", "Corolla", "Fusion"
-    placa: string // Placa única
-    anio: number
+    modelo: string
+    placa: string
+    anio: string
     tipo: tipo
+    cliente_id: number
   }
 
   // Cliente que solicita el servicio
   export interface Cliente {
     id: number
     nombre: string
-    cedula_rif: string // Cédula o RIF único
     telefono: string
   }
 
@@ -37,13 +37,13 @@ declare global {
   // Orden de trabajo registrada en el sistema
   export interface OrdenTrabajo {
     id: number
-    fecha: string // Fecha en formato ISO (YYYY-MM-DD HH:MM:SS)
-    vehiculo_id: number // Relación con la tabla Vehiculo
-    mecanico_id: number // Relación con la tabla Mecanico
-    cliente_id: number // Relación con la tabla Cliente
+    fecha: string
+    vehiculo_id: number
+    mecanico_id: number
+    cliente_id: number
     trabajo_realizado: string
-    notas?: string // Puede ser opcional
-    garantia_id?: number | null // Puede ser NULL si no tiene garantía
+    notas?: string
+    garantia_id?: number | null
   }
 }
 export {}

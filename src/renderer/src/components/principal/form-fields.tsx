@@ -1,8 +1,9 @@
 import type React from "react"
-import { useEffect } from "react"
-import { Car, User, CreditCard, Clock, Search, Plus } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
+import { Car, User, Clock, Search, Plus } from "lucide-react"
 
 interface FormFieldsProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datos: any
   placa: string
   onPlacaChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -41,22 +42,59 @@ export default function FormFields ({
   onSearchMecanicos,
   buscandoMecanicos,
 }: FormFieldsProps) {
+  // Estado para controlar si la lista de mecánicos está visible
+  const [showMecanicosList, setShowMecanicosList] = useState(false)
+  // Referencia al contenedor del input de mecánico para detectar clics fuera
+  const mecanicoContainerRef = useRef<HTMLDivElement>(null)
+
   // Efecto para buscar mecánicos cuando cambia el input
   useEffect(() => {
     const timer = setTimeout(() => {
       if (mecanico.trim().length >= 2) {
         onSearchMecanicos(mecanico)
+        setShowMecanicosList(true)
+      } else {
+        setShowMecanicosList(false)
       }
     }, 300)
 
     return () => clearTimeout(timer)
   }, [mecanico, onSearchMecanicos])
 
+  // Efecto para detectar clics fuera del componente de mecánico
+  useEffect(() => {
+    function handleClickOutside (event: MouseEvent) {
+      if (mecanicoContainerRef.current && !mecanicoContainerRef.current.contains(event.target as Node)) {
+        setShowMecanicosList(false)
+      }
+    }
+
+    // Agregar el event listener
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      // Limpiar el event listener
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
   const handleMecanicoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onMecanicoChange(e)
     // Si el campo está vacío, limpiar las sugerencias
     if (e.target.value.trim() === "") {
       onSearchMecanicos("")
+      setShowMecanicosList(false)
+    }
+  }
+
+  const handleMecanicoSelect = (mecanico: Mecanico) => {
+    onSelectMecanico(mecanico)
+    setShowMecanicosList(false) // Cerrar la lista después de seleccionar
+  }
+
+  // Función para manejar el foco en el input de mecánico
+  const handleMecanicoFocus = () => {
+    if (mecanico.trim().length >= 2 && filteredMecanicos.length > 0) {
+      setShowMecanicosList(true)
     }
   }
 
@@ -107,7 +145,7 @@ export default function FormFields ({
         </div>
         {errorBusqueda && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errorBusqueda}</p>}
       </div>
-      <div className="relative">
+      <div className="relative" ref={mecanicoContainerRef}>
         <label htmlFor="mecanico" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           Mecánico
         </label>
@@ -117,6 +155,7 @@ export default function FormFields ({
             id="mecanico"
             value={mecanico}
             onChange={handleMecanicoInputChange}
+            onFocus={handleMecanicoFocus}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="Buscar mecánico..."
           />
@@ -134,12 +173,12 @@ export default function FormFields ({
           </div>
         )}
 
-        {filteredMecanicos.length > 0 && (
+        {showMecanicosList && filteredMecanicos.length > 0 && (
           <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
             {filteredMecanicos.map((mecanico) => (
               <li
                 key={mecanico.id}
-                onClick={() => onSelectMecanico(mecanico)}
+                onClick={() => handleMecanicoSelect(mecanico)}
                 className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-600 last:border-b-0"
               >
                 {mecanico.nombre}
@@ -177,7 +216,6 @@ export default function FormFields ({
               value={garantiaTiempo}
               onChange={onGarantiaTiempoChange}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Tiempo (0 = sin garantía)"
             />
           </div>
           <select
@@ -189,23 +227,6 @@ export default function FormFields ({
             <option value="semanas">Semanas</option>
             <option value="meses">Meses</option>
           </select>
-        </div>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Ingrese 0 si no aplica garantía</p>
-      </div>
-      <div>
-        <label htmlFor="cedula" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Cédula
-        </label>
-        <div className="relative">
-          <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            id="cedula"
-            maxLength={12}
-            readOnly
-            value={datos.cedula || ""}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-80"
-          />
         </div>
       </div>
     </div>

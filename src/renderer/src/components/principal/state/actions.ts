@@ -36,28 +36,33 @@ export const actions = {
   },
 
   // Búsqueda de vehículo y órdenes por placa
-  buscarPorPlaca: (placa: string, searchByPlaca: any) => async (dispatch: Dispatch<Action>) => {
+  buscarPorPlaca: (placa: string) => async (dispatch: Dispatch<Action>) => {
     if (!placa.trim()) {
       dispatch({ type: 'SET_SEARCH_ERROR', error: 'Por favor ingrese una placa para buscar' })
       return
     }
-
     try {
-      const vehiculo = searchByPlaca
-      if (vehiculo.data) {
-        dispatch({ type: 'SET_SEARCH_ERROR', error: null })
+      const vehiculo = (await window.electron.ipcRenderer.invoke(
+        'vehiculo:getByPlaca',
+        placa
+      )) as Vehiculo
+      console.log('Se ha conseguido el vehiculo', vehiculo)
 
-        const cliente = await window.electron.ipcRenderer.invoke(
+      if (vehiculo) {
+        dispatch({ type: 'SET_SEARCH_ERROR', error: null })
+        console.log('ha entrado al if')
+
+        const cliente = (await window.electron.ipcRenderer.invoke(
           'cliente:getById',
-          vehiculo.data.cliente_id
-        )
+          vehiculo.cliente_id
+        )) as Cliente
 
         dispatch({
           type: 'SET_DATOS',
           datos: {
-            vehiculo: vehiculo.data.modelo,
+            vehiculo: vehiculo.modelo,
             cliente: cliente.nombre,
-            vehiculoId: vehiculo.data.id, // Guardar ID del vehículo
+            vehiculoId: vehiculo.id, // Guardar ID del vehículo
             clienteId: cliente.id // Guardar ID del cliente
           }
         })
@@ -166,7 +171,7 @@ export const actions = {
       }
 
       // Aquí iría la lógica para guardar la garantía en la base de datos
-      const nuevaGarantia = await window.electron.ipcRenderer.invoke('garantias:add', garantia)
+      const nuevaGarantia = await window.electron.ipcRenderer.invoke('garantia:create', garantia)
 
       // Guardar el ID de la garantía en el estado
       dispatch({ type: 'SET_GARANTIA_ID', id: nuevaGarantia.id })
@@ -227,14 +232,26 @@ export const actions = {
       let garantiaId = null
       if (form.garantia.tiempo && Number.parseInt(form.garantia.tiempo) > 0) {
         garantiaId = await actions.registrarGarantia({
-          tiempo: form.garantia.tiempo,
+          tiempo: Number.parseInt(form.garantia.tiempo),
           unidad: form.garantia.unidad
         })(dispatch)
       }
 
-      // Preparar datos de la orden
+      const date = new Date()
+      const formatearFecha = (fechaISO: Date) => {
+        const fecha = new Date(fechaISO)
+        return fecha.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        })
+      }
+
       const ordenData: Omit<OrdenTrabajo, 'id'> = {
-        fecha: form.fecha,
+        fecha: formatearFecha(date),
         vehiculo_id: Number.parseInt(form.datos.vehiculoId),
         mecanico_id: Number.parseInt(form.mecanicoId),
         cliente_id: Number.parseInt(form.datos.clienteId),

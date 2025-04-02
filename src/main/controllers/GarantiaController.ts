@@ -11,7 +11,16 @@ export function setupGarantiaController(ipcMain: IpcMain): void {
       return garantia
     } catch (error) {
       console.error('Error buscando garantia por ID:', error)
-      throw new Error('ID de vehículo inválido')
+      throw new Error('ID de garantía inválido')
+    }
+  })
+
+  ipcMain.handle('garantia:create', async (_, garantiaData: Omit<Garantia, 'id'>) => {
+    try {
+      return await GarantiaModel.create(garantiaData)
+    } catch (error) {
+      console.error('Error creando garantía:', error)
+      throw new Error(`Error al crear garantía: ${error.message}`)
     }
   })
 }

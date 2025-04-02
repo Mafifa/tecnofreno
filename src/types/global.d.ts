@@ -31,7 +31,7 @@ declare global {
   export interface Garantia {
     id: number
     tiempo: number // Duración de la garantía
-    unidad: 'días' | 'semanas' | 'meses' // Unidad de tiempo
+    unidad: 'dias' | 'semanas' | 'meses' // Unidad de tiempo
   }
 
   // Orden de trabajo registrada en el sistema

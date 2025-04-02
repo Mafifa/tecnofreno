@@ -1,5 +1,5 @@
 import type React from "react"
-import { useReducer, useCallback } from "react"
+import { useReducer, useCallback, useState } from "react"
 import ClienteModal from "./modals/cliente-modal"
 import VehiculoModal from "./modals/vehiculo-modal"
 import DetalleOrdenModal from "./modals/detalle-orden-modal"
@@ -17,11 +17,13 @@ import MecanicoModal from "./modals/mecanico-modal"
 import { reducer, initialState } from "./state/reducer"
 import { actions } from "./state/actions"
 
+
 export default function Principal () {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [isBuscando, setIsBuscando] = useState(false)
 
   // Hooks
-  const { searchByPlaca } = useSearchVehiculo(state.form.placa)
+  const { searchByPlaca, isSearching } = useSearchVehiculo()
 
   // Handlers con action creators
   const handleMecanicoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +40,28 @@ export default function Principal () {
 
   // Usar action creators para lógica compleja
   const handleBuscarPlaca = useCallback(async () => {
-    await actions.buscarPorPlaca(state.form.placa, searchByPlaca)(dispatch)
+    if (!state.form.placa || state.form.placa.trim() === "") {
+      dispatch({
+        type: "SET_SEARCH_ERROR",
+        error: "Por favor ingrese una placa para buscar",
+      })
+      return
+    }
+
+    setIsBuscando(true)
+    dispatch({ type: "SET_SEARCH_ERROR", error: null })
+
+    try {
+      await actions.buscarPorPlaca(state.form.placa)(dispatch)
+    } catch (error) {
+      console.error("Error al buscar por placa:", error)
+      dispatch({
+        type: "SET_SEARCH_ERROR",
+        error: "Error al buscar el vehículo. Intente nuevamente.",
+      })
+    } finally {
+      setIsBuscando(false)
+    }
   }, [state.form.placa, searchByPlaca])
 
   const handleVerDetalleOrden = (orden: OrdenTrabajo) => {
@@ -87,7 +110,7 @@ export default function Principal () {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200">
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Formulario principal */}
           <div className="lg:w-2/3">
@@ -104,7 +127,7 @@ export default function Principal () {
                 placa={state.form.placa}
                 onPlacaChange={handlePlacaChange}
                 onBuscarPlaca={handleBuscarPlaca}
-                buscandoOrdenes={state.search.buscando}
+                buscandoOrdenes={isBuscando || isSearching || state.search.buscando}
                 errorBusqueda={state.search.error}
                 mecanico={state.form.mecanico}
                 onMecanicoChange={handleMecanicoChange}

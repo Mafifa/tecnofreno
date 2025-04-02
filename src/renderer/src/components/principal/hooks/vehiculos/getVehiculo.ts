@@ -1,13 +1,25 @@
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
-export function useSearchVehiculo(placa: string) {
-  const searchByPlaca = useQuery({
-    queryKey: ['vehiculos', placa],
-    queryFn: async ({ queryKey }: { queryKey: [string, string] }) => {
-      const placa = queryKey[1]
-      return window.electron.ipcRenderer.invoke('vehiculo:getByPlaca', placa)
+export function useSearchVehiculo() {
+  // Estado para controlar si está buscando
+  const [isSearching, setIsSearching] = useState(false)
+
+  // Función simple para buscar por placa
+  const searchByPlaca = async (placa: string) => {
+    try {
+      setIsSearching(true)
+      const result = await window.electron.ipcRenderer.invoke('vehiculo:getByPlaca', placa)
+      return result
+    } catch (error) {
+      console.error('Error al buscar vehículo:', error)
+      throw error
+    } finally {
+      setIsSearching(false)
     }
-  })
+  }
 
-  return { searchByPlaca }
+  return {
+    searchByPlaca,
+    isSearching
+  }
 }

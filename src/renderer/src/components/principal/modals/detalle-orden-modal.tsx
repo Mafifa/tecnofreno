@@ -21,12 +21,12 @@ interface DetalleOrdenModalProps {
 
 const obtenerDetalleOrden = async (orden: OrdenTrabajo) => {
   const [cliente, vehiculo, mecanico, garantia] = await Promise.all([
-    window.electron.ipcRenderer.invoke('cliente:getById', orden.cliente_id) as Promise<Cliente>,
-    window.electron.ipcRenderer.invoke('vehiculo:getById', orden.vehiculo_id) as Promise<Vehiculo>,
-    window.electron.ipcRenderer.invoke('mecanico:getById', orden.mecanico_id) as Promise<Mecanico>,
+    window.electron.ipcRenderer.invoke("cliente:getById", orden.cliente_id) as Promise<Cliente>,
+    window.electron.ipcRenderer.invoke("vehiculo:getById", orden.vehiculo_id) as Promise<Vehiculo>,
+    window.electron.ipcRenderer.invoke("mecanico:getById", orden.mecanico_id) as Promise<Mecanico>,
     orden.garantia_id
-      ? window.electron.ipcRenderer.invoke('garantia:getById', orden.garantia_id) as Promise<Garantia>
-      : Promise.resolve(undefined)
+      ? (window.electron.ipcRenderer.invoke("garantia:getById", orden.garantia_id) as Promise<Garantia>)
+      : Promise.resolve(undefined),
   ])
 
   return { orden, cliente, vehiculo, mecanico, garantia }
@@ -71,28 +71,59 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
     }
   }
 
-  // Función para formatear la fecha
-  const formatearFecha = (fechaISO: string) => {
-    const fecha = new Date(fechaISO)
+  const formatearFecha = (fechaISO: string | Date | undefined) => {
+    // Si es un objeto Date, convertirlo directamente
+    if (fechaISO instanceof Date) {
+      return fechaISO.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: fechaISO.getHours() !== 0 || fechaISO.getMinutes() !== 0 ? "2-digit" : undefined,
+        minute: fechaISO.getHours() !== 0 || fechaISO.getMinutes() !== 0 ? "2-digit" : undefined,
+        hour12: false,
+      })
+    }
+
+    // Si la fecha ya está en formato DD/MM/YYYY, HH:MM, devolverla tal cual
+    if (typeof fechaISO === "string" && /^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}$/.test(fechaISO)) {
+      return fechaISO
+    }
+
+    // Si no, formatear desde ISO
+    const fecha = new Date(fechaISO as string)
     return fecha.toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      hour: fecha.getHours() !== 0 || fecha.getMinutes() !== 0 ? "2-digit" : undefined,
+      minute: fecha.getHours() !== 0 || fecha.getMinutes() !== 0 ? "2-digit" : undefined,
+      hour12: false,
     })
   }
 
-  // Función para calcular el estado de la garantía
   const calcularEstadoGarantia = () => {
     if (!detalleCompleto?.garantia) return null
 
-    const fechaServicio = new Date(detalleCompleto.orden.fecha)
+    // Parsear la fecha correctamente considerando el formato DD/MM/YYYY, HH:MM
+    const fechaStr = detalleCompleto.orden.fecha
+    let fechaServicio: Date
+
+    if (/^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}$/.test(fechaStr)) {
+      // Formato DD/MM/YYYY, HH:MM
+      const [datePart, timePart] = fechaStr.split(", ")
+      const [day, month, year] = datePart.split("/").map(Number)
+      const [hours, minutes] = timePart.split(":").map(Number)
+      fechaServicio = new Date(year, month - 1, day, hours, minutes)
+    } else {
+      // Formato ISO
+      fechaServicio = new Date(fechaStr)
+    }
+
     const garantia = detalleCompleto.garantia
 
     // Calcular fecha de vencimiento
     const fechaVencimiento = new Date(fechaServicio)
-    if (garantia.unidad === "días") {
+    if (garantia.unidad === "dias") {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + garantia.tiempo)
     } else if (garantia.unidad === "semanas") {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + garantia.tiempo * 7)
@@ -116,7 +147,7 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
       const dias = Math.floor(diasTotales % 30)
 
       // Construir el string de tiempo restante mostrando solo las unidades necesarias
-      const partes = []
+      const partes: string[] = []
 
       if (años > 0) {
         partes.push(`${años} ${años === 1 ? "año" : "años"}`)
@@ -130,7 +161,7 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
         partes.push(`${dias} ${dias === 1 ? "día" : "días"}`)
       }
 
-      return partes.join(" y ")
+      return partes.join(", ")
     }
 
     return {
@@ -197,22 +228,31 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
                       <Clock size={18} className="mr-2" />
                       <span className="font-medium">Garantía:</span>
                     </div>
-                    <div className="ml-7 flex items-center">
-                      <span className="text-gray-800 dark:text-white mr-2">
-                        {detalleCompleto.garantia.tiempo} {detalleCompleto.garantia.unidad}
-                      </span>
-                      {estadoGarantia?.vigente ? (
-                        <div className="flex items-center text-green-600 dark:text-green-400">
-                          <CheckCircle size={16} className="mr-1" />
-                          <span className="text-sm">Vigente ({estadoGarantia.tiempoRestanteFormateado} restantes)</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-red-600 dark:text-red-400">
-                          <XCircle size={16} className="mr-1" />
-                          <span className="text-sm">
-                            Expirada el {estadoGarantia?.fechaVencimiento.toLocaleDateString()}
+                    <div className="ml-7">
+                      <div className="flex items-center flex-wrap">
+                        <span className="text-gray-800 dark:text-white mr-2">
+                          {detalleCompleto.garantia.tiempo} {detalleCompleto.garantia.unidad}
+                        </span>
+                        {estadoGarantia?.vigente ? (
+                          <span className="flex items-center text-green-600 dark:text-green-400">
+                            <CheckCircle size={16} className="mr-1" />
+                            <span>Vigente</span>
                           </span>
-                        </div>
+                        ) : (
+                          <span className="flex items-center text-red-600 dark:text-red-400">
+                            <XCircle size={16} className="mr-1" />
+                            <span>Expirada</span>
+                          </span>
+                        )}
+                      </div>
+                      {estadoGarantia?.vigente ? (
+                        <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                          Tiempo restante: {estadoGarantia.tiempoRestanteFormateado}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                          Expiró el {formatearFecha(estadoGarantia?.fechaVencimiento)}
+                        </p>
                       )}
                     </div>
                   </>

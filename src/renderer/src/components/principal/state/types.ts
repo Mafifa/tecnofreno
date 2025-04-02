@@ -21,8 +21,8 @@ export interface State {
       vehiculo?: string
       cliente?: string
       cedula?: string
-      vehiculoId?: string // Nuevo: ID del vehículo
-      clienteId?: string // Nuevo: ID del cliente
+      vehiculoId?: number // Nuevo: ID del vehículo
+      clienteId?: number // Nuevo: ID del cliente
     }
     garantia: {
       tiempo: string

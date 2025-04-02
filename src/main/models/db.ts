@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS Mecanico (
 CREATE TABLE IF NOT EXISTS Garantia (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tiempo INTEGER NOT NULL,
-    unidad TEXT CHECK (unidad IN ('días', 'semanas', 'meses'))  -- Define si es en días, semanas o meses
+    unidad TEXT CHECK (unidad IN ('dias', 'semanas', 'meses'))  -- Define si es en días, semanas o meses
 );
 
 -- Tabla Vehiculo con cliente_id como referencia al id de Cliente

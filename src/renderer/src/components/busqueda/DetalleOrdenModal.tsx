@@ -93,7 +93,7 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
 
     // Calcular fecha de vencimiento
     const fechaVencimiento = new Date(fechaServicio)
-    if (garantia.unidad === "días") {
+    if (garantia.unidad === "dias") {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + garantia.tiempo)
     } else if (garantia.unidad === "semanas") {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + garantia.tiempo * 7)
@@ -128,7 +128,7 @@ export default function DetalleOrdenModal ({ orden, isOpen, onClose }: DetalleOr
       }
 
       if (dias > 0 || (años === 0 && meses === 0)) {
-        partes.push(`${dias} ${dias === 1 ? "día" : "días"}`)
+        partes.push(`${dias} ${dias === 1 ? "dia" : "dias"}`)
       }
 
       return partes.join(" y ")

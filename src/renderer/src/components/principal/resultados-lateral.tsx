@@ -82,7 +82,7 @@ export default function ResultadosLateral ({ resultados, onVerDetalle }: Resulta
         </h3>
       </div>
 
-      <div className="overflow-y-auto max-h-[calc(100vh-250px)]">
+      <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
         {ordenesOrdenadas.length > 0 ? (
           <>
             <ul className="space-y-3">

@@ -56,17 +56,86 @@ export class OrdenTrabajoModel {
     return { id: result.lastID }
   }
 
-  static async getByPlaca(placa: string): Promise<OrdenTrabajo[]> {
+  static async getByPlaca(
+    placa: string,
+    page?: number,
+    itemsPerPage?: number
+  ): Promise<{ ordenes: OrdenTrabajo[]; hayMas?: boolean }> {
     const db = await getDb()
+
+    if (page === undefined || itemsPerPage === undefined) {
+      // Si no se proporcionan `page` e `itemsPerPage`, devolver las 3 órdenes más recientes
+      const query = `
+      SELECT ot.*
+      FROM OrdenTrabajo ot
+      INNER JOIN Vehiculo v ON ot.vehiculo_id = v.id
+      WHERE v.placa = ?
+      ORDER BY ot.fecha DESC
+      LIMIT 3
+    `
+      const ordenes = await db.all(query, [placa])
+      return { ordenes }
+    } else {
+      // Si se proporcionan `page` e `itemsPerPage`, aplicar paginación
+      const offset = (page - 1) * itemsPerPage
+
+      const query = `
+      SELECT ot.*
+      FROM OrdenTrabajo ot
+      INNER JOIN Vehiculo v ON ot.vehiculo_id = v.id
+      WHERE v.placa = ?
+      ORDER BY ot.fecha ASC
+      LIMIT ? OFFSET ?
+    `
+      const ordenes = await db.all(query, [placa, itemsPerPage, offset])
+
+      // Verificar si hay más resultados
+      const countQuery = `
+      SELECT COUNT(*) as total
+      FROM OrdenTrabajo ot
+      INNER JOIN Vehiculo v ON ot.vehiculo_id = v.id
+      WHERE v.placa = ?
+    `
+      const { total } = await db.get(countQuery, [placa])
+      const hayMas = offset + itemsPerPage < total
+
+      return { ordenes, hayMas }
+    }
+  }
+
+  static async getByMecanicoId(
+    mecanicoId: number,
+    page: number,
+    itemsPerPage: number
+  ): Promise<{ ordenes: OrdenTrabajo[]; hayMas: boolean }> {
+    const db = await getDb()
+    const offset = (page - 1) * itemsPerPage
+
     const query = `
-    SELECT ot.*
-    FROM OrdenTrabajo ot
-    INNER JOIN Vehiculo v ON ot.vehiculo_id = v.id
-    WHERE v.placa = ?
-    ORDER BY ot.fecha DESC
-    LIMIT 5
-  `
-    const ordenes = await db.all(query, [placa])
-    return ordenes
+      SELECT ot.*,
+        c.nombre AS cliente_nombre,
+        v.modelo AS vehiculo_modelo,
+        v.placa AS vehiculo_placa,
+        v.anio AS vehiculo_anio,
+        v.tipo AS vehiculo_tipo
+      FROM OrdenTrabajo ot
+      JOIN Cliente c ON ot.cliente_id = c.id
+      JOIN Vehiculo v ON ot.vehiculo_id = v.id
+      WHERE ot.mecanico_id = ?
+      ORDER BY ot.fecha ASC
+      LIMIT ? OFFSET ?
+    `
+    const ordenes = await db.all(query, [mecanicoId, itemsPerPage, offset])
+
+    // Verificar si hay más resultados
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM OrdenTrabajo
+      WHERE mecanico_id = ?
+    `
+    const { total } = await db.get(countQuery, [mecanicoId])
+    const hayMas = offset + itemsPerPage < total
+
+    return { ordenes, hayMas }
   }
 }

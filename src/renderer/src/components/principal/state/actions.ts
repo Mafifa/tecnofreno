@@ -3,11 +3,8 @@ import type { Action } from './types'
 
 // Dummy function, replace with actual implementation
 const buscarOrdenesPorPlaca = async (placa: string) => {
-  const ordenes = (await window.electron.ipcRenderer.invoke(
-    'orden:getByPlaca',
-    placa
-  )) as OrdenTrabajo[]
-  return ordenes
+  const ordenes = await window.electron.ipcRenderer.invoke('orden:getByPlaca', placa)
+  return ordenes.ordenes
 }
 
 // Action creators
@@ -188,6 +185,7 @@ export const actions = {
   },
 
   // Guardar orden de trabajo
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   guardarOrden: () => async (dispatch: Dispatch<Action>, getState: () => any) => {
     dispatch({ type: 'SET_GUARDANDO_ORDEN', guardando: true })
     dispatch({ type: 'SET_SEARCH_ERROR', error: null })

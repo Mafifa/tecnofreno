@@ -63,7 +63,7 @@ const App: React.FC = () => {
             </div>
           </div>
         </nav>
-        <main className={`flex-1 overflow-y-auto p-6 sm:p-8 ${modoOscuro ? 'text-white' : ''}`}>
+        <main className={`flex-1 overflow-y-auto px-6 sm:p-8 ${modoOscuro ? 'text-white' : ''}`}>
           <div className="max-w-7xl mx-auto">
             {activeTab === 'dashboard' && <Principal />}
             {activeTab === 'analisis' && <Analisis />}

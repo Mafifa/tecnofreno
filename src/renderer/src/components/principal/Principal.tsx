@@ -109,7 +109,7 @@ export default function Principal () {
   const isGuardando = state.search.guardandoGarantia || state.search.guardandoOrden
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200">
+    <div className="min-h-screen -my-4 bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Formulario principal */}

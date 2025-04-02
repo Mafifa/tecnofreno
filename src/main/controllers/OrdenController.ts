@@ -24,13 +24,28 @@ export function setupOrdenController(ipcMain: IpcMain): void {
     }
   })
 
-  ipcMain.handle('orden:getByPlaca', async (_, placa: string) => {
-    try {
-      const ordenes = await OrdenTrabajoModel.getByPlaca(placa)
-      return ordenes
-    } catch (error) {
-      console.error('Error al obtener órdenes por placa desde el controller:', error)
-      throw new Error('Error al obtener órdenes por placa')
+  ipcMain.handle(
+    'orden:getByPlaca',
+    async (_, placa: string, pagina: number | undefined, itemsPerPages: number | undefined) => {
+      try {
+        const ordenes = await OrdenTrabajoModel.getByPlaca(placa, pagina, itemsPerPages)
+        return ordenes
+      } catch (error) {
+        console.error('Error al obtener órdenes por placa desde el controller:', error)
+        throw new Error('Error al obtener órdenes por placa')
+      }
     }
-  })
+  )
+  ipcMain.handle(
+    'orden:getByMecanicoId',
+    async (_, mecanicoId: number, pagina: number, itemsPerPages: number) => {
+      try {
+        const ordenes = await OrdenTrabajoModel.getByMecanicoId(mecanicoId, pagina, itemsPerPages)
+        return ordenes
+      } catch (error) {
+        console.error('Error al obtener órdenes por mecánico desde el controller:', error)
+        throw new Error('Error al obtener órdenes por mecánico')
+      }
+    }
+  )
 }

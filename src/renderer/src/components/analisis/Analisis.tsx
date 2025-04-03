@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import {
   BarChart,
@@ -15,7 +17,6 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { Calendar, Wrench, BarChart2, User, PenToolIcon as Tool, TrendingUp } from "lucide-react"
-import { obtenerDatosAnalisis } from "./servicios-analisis"
 
 export default function Analisis () {
   const [cargando, setCargando] = useState(true)
@@ -29,7 +30,8 @@ export default function Analisis () {
       setCargando(true)
       setError(null)
       try {
-        const resultado = await obtenerDatosAnalisis(periodoSeleccionado)
+        // Llamar al backend a través de IPC
+        const resultado = await window.electron.ipcRenderer.invoke("analisis:obtenerDatos", periodoSeleccionado)
         setDatos(resultado)
       } catch (err) {
         console.error("Error al cargar datos de análisis:", err)
@@ -47,11 +49,42 @@ export default function Analisis () {
 
   // Formatear fecha
   const formatoFecha = (fecha: string) => {
-    const date = new Date(fecha)
-    return date.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "short",
-    })
+    // Si la fecha ya está en formato DD/MM/YYYY
+    if (fecha.includes("/")) {
+      const partes = fecha.split("/")
+      // Si es DD/MM/YYYY
+      if (partes.length >= 3) {
+        const dia = partes[0]
+        const mes = partes[1]
+        // Crear un objeto Date con el formato correcto (YYYY-MM-DD)
+        const fechaObj = new Date(`${partes[2]}-${mes}-${dia}`)
+        return fechaObj.toLocaleDateString("es-ES", {
+          day: "2-digit",
+          month: "short",
+        })
+      }
+      // Si es MM/YYYY (para agrupación por mes)
+      else if (partes.length === 2) {
+        const mes = Number.parseInt(partes[0]) - 1 // Meses en JS son 0-11
+        const anio = Number.parseInt(partes[1])
+        const fechaObj = new Date(anio, mes, 1)
+        return fechaObj.toLocaleDateString("es-ES", {
+          month: "short",
+          year: "numeric",
+        })
+      }
+    }
+
+    // Fallback para otros formatos
+    try {
+      const date = new Date(fecha)
+      return date.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+      })
+    } catch (e) {
+      return fecha // Devolver la fecha original si no se puede formatear
+    }
   }
 
   if (cargando) {
@@ -173,18 +206,16 @@ export default function Analisis () {
                 <Tool className="text-yellow-500 dark:text-yellow-300" size={24} />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Garantias activas</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Garantías activas</p>
                 <h3
                   className="text-lg font-bold text-gray-800 dark:text-white truncate max-w-[180px]"
-                  title={datos.kpis.trabajoMasFrecuente.trabajo}
+                  title={"Garantías activas"}
                 >
-                  {datos.kpis.trabajoMasFrecuente.trabajo}
+                  {datos.kpis.garantiasActivas}
                 </h3>
               </div>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {datos.kpis.trabajoMasFrecuente.cantidad} veces realizado
-            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Con período de garantía vigente</div>
           </div>
         </div>
 

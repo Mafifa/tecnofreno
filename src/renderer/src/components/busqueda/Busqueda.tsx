@@ -19,8 +19,8 @@ export default function Busqueda () {
 
   return (
     <div className=" bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200 -my-4">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-6xl mx-auto transition-colors duration-200">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">Búsqueda de Servicios</h2>
+      <div className="bg-white dark:bg-gray-800 px-8 py-4 rounded-xl shadow-lg max-w-6xl mx-auto transition-colors duration-200">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Búsqueda de Servicios</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <BusquedaPlaca onVerDetalle={handleVerDetalle} />

@@ -1,6 +1,7 @@
-import { useState } from "react"
-import { Search, Calendar, Car, ChevronLeft, ChevronRight } from "lucide-react"
+"use client"
 
+import { useState } from "react"
+import { Search, Calendar, Car, ChevronLeft, ChevronRight } from 'lucide-react'
 interface ResultadoPaginado {
   ordenes: OrdenTrabajo[]
   hayMas: boolean
@@ -45,10 +46,16 @@ export default function BusquedaPlaca ({ onVerDetalle }: BusquedaPlacaProps) {
     try {
       const resultado = await buscarOrdenesPorPlaca(placa, pagina, ITEMS_POR_PAGINA)
 
-      // Ordenamos las órdenes por fecha (más recientes primero)
+      // Ordenamos las órdenes por ID (de mayor a menor)
       const ordenesOrdenadas = [...resultado.ordenes].sort((a, b) => {
-        return convertirFechaATimestamp(b.fecha) - convertirFechaATimestamp(a.fecha)
-      })
+        // Asegurarnos de que los IDs se traten como números
+        const idA = typeof a.id === 'string' ? parseInt(a.id, 10) : a.id;
+        const idB = typeof b.id === 'string' ? parseInt(b.id, 10) : b.id;
+        return idB - idA; // Orden descendente por ID
+      });
+
+      // Verificar en consola para depuración
+      console.log('Órdenes ordenadas por ID:', ordenesOrdenadas.map(orden => orden.id));
 
       setResultados(ordenesOrdenadas)
       setHayMasResultados(resultado.hayMas)
@@ -225,4 +232,3 @@ export default function BusquedaPlaca ({ onVerDetalle }: BusquedaPlacaProps) {
     </div>
   )
 }
-

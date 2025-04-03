@@ -1,7 +1,6 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Search, Calendar, PenToolIcon as Tool, ChevronLeft, ChevronRight } from "lucide-react"
-
 interface ResultadoPaginado {
   ordenes: OrdenTrabajo[]
   hayMas: boolean
@@ -89,9 +88,9 @@ export default function BusquedaMecanico ({ onVerDetalle }: BusquedaMecanicoProp
     try {
       const resultado = await buscarOrdenesPorMecanico(mecanicoSeleccionado.id, pagina, ITEMS_POR_PAGINA)
 
-      // Ordenamos las órdenes por fecha (más recientes primero)
+      // Ordenamos las órdenes por ID (de mayor a menor)
       const ordenesOrdenadas = [...resultado.ordenes].sort((a, b) => {
-        return convertirFechaATimestamp(b.fecha) - convertirFechaATimestamp(a.fecha)
+        return b.id - a.id // Orden descendente por ID
       })
 
       setResultados(ordenesOrdenadas)

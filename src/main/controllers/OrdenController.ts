@@ -1,4 +1,4 @@
-import { IpcMain } from 'electron'
+import type { IpcMain } from 'electron'
 import { OrdenTrabajoModel } from '../models/OrdenTrabajoModel'
 
 export function setupOrdenController(ipcMain: IpcMain): void {
@@ -48,4 +48,14 @@ export function setupOrdenController(ipcMain: IpcMain): void {
       }
     }
   )
+
+  ipcMain.handle('orden:getHistorial', async (_, filtros) => {
+    try {
+      const resultado = await OrdenTrabajoModel.getHistorial(filtros)
+      return resultado
+    } catch (error) {
+      console.error('Error al obtener historial de órdenes:', error)
+      throw new Error('Error al obtener historial de órdenes')
+    }
+  })
 }

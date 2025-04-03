@@ -10,11 +10,11 @@ interface ResultadosLateralProps {
 export default function ResultadosLateral ({ resultados, onVerDetalle }: ResultadosLateralProps) {
   const [ordenesOrdenadas, setOrdenesOrdenadas] = useState<OrdenTrabajo[]>([])
 
-  // Ordenar resultados por fecha (más recientes primero)
+  // Ordenar resultados por ID (de mayor a menor)
   useEffect(() => {
     if (resultados.length > 0) {
       const ordenadas = [...resultados].sort((a, b) => {
-        return convertirFechaATimestamp(b.fecha) - convertirFechaATimestamp(a.fecha)
+        return b.id - a.id // Orden descendente por ID
       })
       setOrdenesOrdenadas(ordenadas)
     } else {
@@ -71,7 +71,6 @@ export default function ResultadosLateral ({ resultados, onVerDetalle }: Resulta
   const truncarTexto = (texto: string, longitud = 50) => {
     return texto.length > longitud ? texto.substring(0, longitud) + "..." : texto
   }
-
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg sticky top-4">

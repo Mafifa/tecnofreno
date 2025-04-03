@@ -1,6 +1,7 @@
-import { useAppContext, AppContextType } from './context/appContext'
+import { useAppContext } from './context/appContext'
 
-export const useConfig = (): Pick<AppContextType, 'config' | 'updateConfig' | 'getTasaCambio'> => {
-  const { config, updateConfig, getTasaCambio } = useAppContext()
-  return { config, updateConfig, getTasaCambio }
+// Hook personalizado para acceder a la configuración
+export const useConfig = () => {
+  const { config, updateConfig } = useAppContext()
+  return { config, updateConfig }
 }

@@ -1,128 +1,97 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type React from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
+// Definición de la interfaz para la configuración
 export interface Config {
-  tasaCambioInventario: string;
-  tasaPersonalizadaInventario: number | null;
-  tasaCambioFacturacion: string;
-  tasaPersonalizadaFacturacion: number | null;
-  modalidadBolivarParalelo: boolean;
-  idioma: 'es' | 'en';
-  modoOscuro: boolean;
+  tasaCambioInventario: string
+  tasaPersonalizadaInventario: number | null
+  tasaCambioFacturacion: string
+  tasaPersonalizadaFacturacion: number | null
+  modalidadBolivarParalelo: boolean
+  idioma: "es" | "en"
+  modoOscuro: boolean
 }
 
-export interface AppContextType {
-  tasasDolar: DolarRate[];
-  isLoading: boolean;
-  error: string | null;
-  config: Config;
-  updateConfig: (key: keyof Config, value: any) => Promise<void>;
-  getTasaCambio: (tipo: 'inventario' | 'facturacion') => number;
-  updateTasasDolar: () => Promise<void>;
+// Valores por defecto para la configuración
+const defaultConfig: Config = {
+  tasaCambioInventario: "bancoCentral",
+  tasaPersonalizadaInventario: null,
+  tasaCambioFacturacion: "bancoCentral",
+  tasaPersonalizadaFacturacion: null,
+  modalidadBolivarParalelo: false,
+  idioma: "es",
+  modoOscuro: false,
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+// Interfaz para el contexto de la aplicación
+interface AppContextType {
+  config: Config
+  updateConfig: <K extends keyof Config>(key: K, value: Config[K]) => void
+  // Aquí puedes añadir más estados globales si los necesitas
+}
 
-export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
-};
+// Crear el contexto
+const AppContext = createContext<AppContextType | undefined>(undefined)
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tasasDolar, setTasasDolar] = useState<DolarRate[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [config, setConfig] = useState<Config>({
-    tasaCambioInventario: 'promedio',
-    tasaPersonalizadaInventario: null,
-    tasaCambioFacturacion: 'promedio',
-    tasaPersonalizadaFacturacion: null,
-    modalidadBolivarParalelo: false,
-    idioma: 'es',
-    modoOscuro: false,
-  });
+// Props para el proveedor
+interface AppProviderProps {
+  children: ReactNode
+}
 
-  const fetchTasasDolar = async () => {
+// Proveedor del contexto
+export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
+  // Estado para la configuración
+  const [config, setConfig] = useState<Config>(() => {
+    // Intentar cargar la configuración desde localStorage al iniciar
     try {
-      setIsLoading(true);
-      const tasas = await window.electron.ipcRenderer.invoke('get-tasas');
-      if ('error' in tasas) {
-        throw new Error(tasas.error);
-      }
-      setTasasDolar(tasas);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching tasas dolar:', err);
-      setError('Error al obtener las tasas del dólar');
-    } finally {
-      setIsLoading(false);
+      const savedConfig = localStorage.getItem("appConfig")
+      return savedConfig ? JSON.parse(savedConfig) : defaultConfig
+    } catch (error) {
+      console.error("Error al cargar la configuración:", error)
+      return defaultConfig
     }
-  };
+  })
 
-  useEffect(() => {
-    fetchTasasDolar();
+  // Función para actualizar una propiedad específica de la configuración
+  const updateConfig = <K extends keyof Config> (key: K, value: Config[K]) => {
+    setConfig((prevConfig) => {
+      const newConfig = { ...prevConfig, [key]: value }
 
-    const loadConfig = async () => {
+      // Guardar en localStorage
       try {
-        const allConfig = await window.electron.ipcRenderer.invoke('get-all-config');
-        setConfig(allConfig);
-      } catch (err) {
-        console.error('Error loading config:', err);
-        setError('Error al cargar la configuración');
+        localStorage.setItem("appConfig", JSON.stringify(newConfig))
+      } catch (error) {
+        console.error("Error al guardar la configuración:", error)
       }
-    };
 
-    loadConfig();
-  }, []);
+      return newConfig
+    })
+  }
 
-  const updateConfig = async (key: keyof Config, value: any) => {
-    try {
-      const success = await window.electron.ipcRenderer.invoke('set-config', key, value);
-      if (success) {
-        setConfig(prevConfig => ({ ...prevConfig, [key]: value }));
-      } else {
-        throw new Error('Failed to update config');
-      }
-    } catch (err) {
-      console.error('Error updating config:', err);
-      setError('Error al actualizar la configuración');
+  // Efecto para aplicar el modo oscuro
+  useEffect(() => {
+    if (config.modoOscuro) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
     }
-  };
+  }, [config.modoOscuro])
 
-  const getTasaCambio = useCallback((tipo: 'inventario' | 'facturacion') => {
-    const tasaConfig = tipo === 'inventario' ? config.tasaCambioInventario : config.tasaCambioFacturacion;
-    const tasaPersonalizada = tipo === 'inventario' ? config.tasaPersonalizadaInventario : config.tasaPersonalizadaFacturacion;
+  // Valor del contexto
+  const contextValue: AppContextType = {
+    config,
+    updateConfig,
+  }
 
-    if (config.modalidadBolivarParalelo) {
-      return tasasDolar.find(t => t.fuente === 'paralelo')?.promedio || 0;
-    }
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
+}
 
-    switch (tasaConfig) {
-      case 'bancoCentral':
-        return tasasDolar.find(t => t.fuente === 'oficial')?.promedio || 0;
-      case 'paralelo':
-        return tasasDolar.find(t => t.fuente === 'paralelo')?.promedio || 0;
-      case 'binance':
-        return tasasDolar.find(t => t.fuente === 'bitcoin')?.promedio || 0;
-      case 'promedio':
-        return tasasDolar.reduce((sum, t) => sum + t.promedio, 0) / tasasDolar.length;
-      case 'personalizada':
-        return tasaPersonalizada || 0;
-      default:
-        return 0;
-    }
-  }, [config, tasasDolar]);
-
-  const updateTasasDolar = useCallback(async () => {
-    await fetchTasasDolar();
-  }, []);
-
-  return (
-    <AppContext.Provider value={{ tasasDolar, isLoading, error, config, updateConfig, getTasaCambio, updateTasasDolar }}>
-      {children}
-    </AppContext.Provider>
-  );
-};
+// Hook personalizado para usar el contexto
+export const useAppContext = () => {
+  const context = useContext(AppContext)
+  if (context === undefined) {
+    throw new Error("useAppContext must be used within an AppProvider")
+  }
+  return context
+}
 

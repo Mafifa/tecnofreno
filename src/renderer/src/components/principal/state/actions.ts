@@ -1,5 +1,6 @@
 import type { Dispatch } from 'react'
 import type { Action } from './types'
+import { toast } from 'sonner'
 
 // Dummy function, replace with actual implementation
 const buscarOrdenesPorPlaca = async (placa: string) => {
@@ -88,6 +89,7 @@ export const actions = {
     } catch (err) {
       dispatch({ type: 'SET_SEARCH_ERROR', error: 'Error al buscar órdenes. Intente nuevamente.' })
       console.error(err)
+      toast.error('Un error a ocurrido')
     } finally {
       dispatch({ type: 'SET_SEARCH_STATUS', buscando: false })
     }
@@ -105,10 +107,12 @@ export const actions = {
 
       // Opcional: Mostrar mensaje de éxito
       // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Cliente guardado con éxito' })
+      toast.success('Cliente guardado con éxito')
     } catch (error) {
       console.error('Error al guardar cliente:', error)
       // Opcional: Mostrar mensaje de error
       // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Error al guardar cliente', isError: true })
+      toast.error('Error al guardar cliente')
     }
   },
 
@@ -117,17 +121,29 @@ export const actions = {
     try {
       // Aquí iría la lógica para guardar el vehículo en la base de datos
       const result = await window.electron.ipcRenderer.invoke('vehiculo:create', vehiculo)
-      console.log('Vehículo guardado:', result)
+
+      // Verificar si la operación fue exitosa
+      if (!result.success) {
+        // Manejar diferentes tipos de errores
+        if (result.error === 'DUPLICATE_PLATE') {
+          toast.error(`Ya existe un vehículo con la placa ${vehiculo.placa}`)
+          return
+        } else {
+          toast.error(`Ya existe un vehículo con esta placa`)
+          return
+        }
+      }
+
+      console.log('Vehículo guardado:', result.data)
 
       // Cerrar el modal después de guardar
       dispatch({ type: 'TOGGLE_MODAL', modalName: 'vehiculo', value: false })
 
-      // Opcional: Mostrar mensaje de éxito
-      // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Vehículo guardado con éxito' })
+      // Mostrar mensaje de éxito
+      toast.success('Vehículo guardado con éxito')
     } catch (error) {
       console.error('Error al guardar vehículo:', error)
-      // Opcional: Mostrar mensaje de error
-      // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Error al guardar vehículo', isError: true })
+      toast.error('Error al guardar vehículo')
     }
   },
 
@@ -147,11 +163,13 @@ export const actions = {
 
       // Cerrar el modal
       dispatch({ type: 'TOGGLE_MODAL', modalName: 'mecanico', value: false })
+      toast.success('Mecanico guardado')
 
       // Seleccionar el mecánico recién agregado
       dispatch({ type: 'SELECT_MECANICO', mecanico: nuevoMecanico })
     } catch (error) {
       console.error('Error al guardar mecánico:', error)
+      toast.error('Error al guardar mecánico')
     }
   },
 
@@ -272,8 +290,10 @@ export const actions = {
 
       // Opcional: Mostrar mensaje de éxito
       // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Orden guardada con éxito' })
+      toast.success('Orden guardada con éxito')
     } catch (error) {
       console.error('Error al guardar orden:', error)
+      toast.error('Ha ocurrido un error')
       dispatch({
         type: 'SET_SEARCH_ERROR',
         error: 'Error al guardar la orden. Intente nuevamente.'

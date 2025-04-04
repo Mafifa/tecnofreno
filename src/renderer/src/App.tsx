@@ -6,12 +6,14 @@ import Historial from './components/historial/Historial';
 import Analisis from './components/analisis/Analisis';
 import Configuracion from './components/Settings/settings';
 import { Home, Package, BarChart2, Settings, History } from 'lucide-react';
+import { useConfig } from './components/Settings/useSettings';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const { config } = useConfig()
 
-  const modoOscuro = false
+  const modoOscuro = config.modoOscuro
 
   const tabs = [
     { id: 'dashboard', name: 'Principal', icon: Home },
@@ -24,7 +26,7 @@ const App: React.FC = () => {
   return (
     <div className={`flex flex-col h-screen ${modoOscuro ? 'dark' : ''}`}>
       <div className={`flex-1 ${modoOscuro ? 'bg-gray-900' : 'bg-gray-100'}`}>
-        <Toaster position="top-center" closeButton duration={2500} richColors />
+        <Toaster closeButton duration={2500} richColors />
         <nav className={`${modoOscuro ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">

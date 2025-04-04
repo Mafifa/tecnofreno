@@ -114,9 +114,8 @@ export default function Analisis () {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8 px-4 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">Panel de Análisis</h1>
 
         {/* Selector de período */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">

@@ -19,8 +19,8 @@ export class VehiculoModel {
       )
       return { ...vehiculo, id: lastID as number }
     } catch (error) {
-      console.log('error desde el modelo', error.message)
-      throw new Error(`Error creating vehicle: ${error.message}`)
+      console.log('error desde el modelo', error)
+      throw new Error(`Error creating vehicle: ${error}`)
     }
   }
 

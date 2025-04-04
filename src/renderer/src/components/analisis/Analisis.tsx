@@ -114,8 +114,9 @@ export default function Analisis () {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8 px-4 transition-colors duration-200">
       <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">Panel de Análisis</h1>
 
         {/* Selector de período */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
@@ -256,8 +257,8 @@ export default function Analisis () {
             </h3>
 
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                {tipoGraficoSeleccionado === "ordenes" && (
+              {tipoGraficoSeleccionado === "ordenes" ? (
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={datos.ordenesporTiempo} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="fecha" tickFormatter={formatoFecha} />
@@ -269,9 +270,9 @@ export default function Analisis () {
                     <Legend />
                     <Line type="monotone" dataKey="cantidad" name="Órdenes" stroke="#0088FE" activeDot={{ r: 8 }} />
                   </LineChart>
-                )}
-
-                {tipoGraficoSeleccionado === "vehiculos" && (
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={datos.distribucionVehiculos}
@@ -284,15 +285,15 @@ export default function Analisis () {
                       nameKey="tipo"
                       label={({ tipo, percent }) => `${tipo}: ${(percent * 100).toFixed(0)}%`}
                     >
-                      {datos.distribucionVehiculos.map((entry: any, index: number) => (
+                      {datos.distribucionVehiculos.map((_entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: any, name: any, props: any) => [value, props.payload.tipo]} />
+                    <Tooltip formatter={(value: any, name: any) => [value, name]} />
                     <Legend />
                   </PieChart>
-                )}
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -304,8 +305,8 @@ export default function Analisis () {
             </h3>
 
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                {tipoGraficoSeleccionado === "ordenes" && (
+              {tipoGraficoSeleccionado === "ordenes" ? (
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={datos.ordenesPorMecanico} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="nombre" />
@@ -314,9 +315,9 @@ export default function Analisis () {
                     <Legend />
                     <Bar dataKey="ordenes" name="Órdenes Completadas" fill="#0088FE" />
                   </BarChart>
-                )}
-
-                {tipoGraficoSeleccionado === "vehiculos" && (
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={datos.distribucionAnios} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="anio" />
@@ -325,8 +326,8 @@ export default function Analisis () {
                     <Legend />
                     <Bar dataKey="cantidad" name="Cantidad de Vehículos" fill="#FF8042" />
                   </BarChart>
-                )}
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>

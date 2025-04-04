@@ -20,7 +20,7 @@ export function setupGarantiaController(ipcMain: IpcMain): void {
       return await GarantiaModel.create(garantiaData)
     } catch (error) {
       console.error('Error creando garantía:', error)
-      throw new Error(`Error al crear garantía: ${error.message}`)
+      throw new Error(`Error al crear garantía: ${error}`)
     }
   })
 }

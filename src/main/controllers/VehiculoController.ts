@@ -21,7 +21,7 @@ export function setupVehiculoController(ipcMain: IpcMain): void {
       return {
         success: false,
         error: 'CREATION_ERROR',
-        message: `Error al crear vehículo: ${error.message}`
+        message: `Error al crear vehículo: ${error}`
       }
     }
   })
@@ -35,7 +35,7 @@ export function setupVehiculoController(ipcMain: IpcMain): void {
       return vehiculo
     } catch (error) {
       console.error('Error buscando vehículo por placa:', error)
-      throw new Error(`Error al buscar vehículo: ${error.message}`)
+      throw new Error(`Error al buscar vehículo: ${error}`)
     }
   })
 

@@ -7,7 +7,7 @@ export function setupClienteController(ipcMain: IpcMain): void {
       return await ClienteModel.create(clienteData)
     } catch (error) {
       console.error('Error creando cliente:', error)
-      throw new Error(`Error al crear cliente: ${error.message}`)
+      throw new Error(`Error al crear cliente: ${error}`)
     }
   })
 
@@ -20,11 +20,7 @@ export function setupClienteController(ipcMain: IpcMain): void {
       return cliente
     } catch (error) {
       console.error('Error buscando cliente por cédula:', error)
-      throw new Error(
-        error.message.includes('no encontrado')
-          ? error.message
-          : 'Formato de cédula inválido (Ej: V-12345678)'
-      )
+      throw new Error()
     }
   })
 
@@ -51,7 +47,7 @@ export function setupClienteController(ipcMain: IpcMain): void {
       return clientes
     } catch (error) {
       console.error('Error buscando clientes por nombre:', error)
-      throw new Error(`Error al buscar clientes: ${error.message}`)
+      throw new Error(`Error al buscar clientes: ${error}`)
     }
   })
 }

@@ -22,7 +22,7 @@ export class ClienteModel {
       return results
     } catch (error) {
       console.error('Database query error:', error)
-      throw new Error(`Error from model searching clients by name: ${error.message}`)
+      throw new Error(`Error from model searching clients by name: ${error}`)
     }
   }
 
@@ -36,7 +36,7 @@ export class ClienteModel {
       ])
     } catch (error) {
       console.error('Database query error:', error)
-      throw new Error(`Error searching client: ${error.message}`)
+      throw new Error(`Error searching client: ${error}`)
     }
   }
 
@@ -48,7 +48,7 @@ export class ClienteModel {
       return await db.get<Cliente>('SELECT * FROM Cliente WHERE id = ?', [id])
     } catch (error) {
       console.error('Database query error:', error)
-      throw new Error(`Error searching client: ${error.message}`)
+      throw new Error(`Error searching client: ${error}`)
     }
   }
 }

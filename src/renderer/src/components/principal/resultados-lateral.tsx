@@ -22,19 +22,6 @@ export default function ResultadosLateral ({ resultados, onVerDetalle }: Resulta
     }
   }, [resultados])
 
-  // Función para convertir fecha en formato DD/MM/YYYY, HH:MM a timestamp
-  const convertirFechaATimestamp = (fechaStr: string): number => {
-    if (/^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}$/.test(fechaStr)) {
-      // Formato DD/MM/YYYY, HH:MM
-      const [datePart, timePart] = fechaStr.split(", ")
-      const [day, month, year] = datePart.split("/").map(Number)
-      const [hours, minutes] = timePart.split(":").map(Number)
-      return new Date(year, month - 1, day, hours, minutes).getTime()
-    } else {
-      // Intentar parsear como fecha ISO
-      return new Date(fechaStr).getTime()
-    }
-  }
 
   // Función para formatear la fecha
   const formatearFecha = (fechaISO: string | Date | undefined) => {

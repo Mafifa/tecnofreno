@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
 import { Car, X, User } from "lucide-react"
-import { useAddVehiculo } from "../hooks/vehiculos/addVehiculo"
 import type { tipo } from "src/types/types"
 import { useSearchClient } from "../hooks/clientes/getCliente"
+import { toast } from "sonner"
 
 interface VehiculoModalProps {
   isOpen: boolean
@@ -20,7 +20,6 @@ export default function VehiculoModal ({ isOpen, onClose, onSave, loadingVehicul
   const [clienteEncontrado, setClienteEncontrado] = useState<Cliente | null>(null)
   const [clientesSugeridos, setClientesSugeridos] = useState<Cliente[]>([])
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false)
-  const { error: vehiculoError, } = useAddVehiculo()
   const { data, search, loading: isLoading } = useSearchClient()
 
   useEffect(() => {
@@ -51,22 +50,21 @@ export default function VehiculoModal ({ isOpen, onClose, onSave, loadingVehicul
   }
 
   const handleSave = async () => {
-    if (!clienteEncontrado?.id) return
-
-    try {
-      const nuevoVehiculo = {
-        modelo,
-        placa,
-        anio: anio,
-        tipo,
-        cliente_id: clienteEncontrado.id
-      }
-      onSave(nuevoVehiculo)
-      handleClose()
-    } catch (error) {
-      console.error("Error guardando vehículo:", error)
-      console.error(vehiculoError)
+    if (!clienteEncontrado?.id) {
+      toast.error('Error al encontrar cliente')
+      return
     }
+
+    const nuevoVehiculo = {
+      modelo,
+      placa,
+      anio: anio,
+      tipo,
+      cliente_id: clienteEncontrado.id
+    }
+    onSave(nuevoVehiculo)
+    handleClose()
+
   }
 
   const handleClose = () => {

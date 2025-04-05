@@ -12,6 +12,10 @@ files:
 asarUnpack:
   - resources/**
 win:
+  target:
+    - target: nsis
+      arch:
+        - ia32
   executableName: tecnofreno
 nsis:
   artifactName: ${name}-${version}-setup.${ext}

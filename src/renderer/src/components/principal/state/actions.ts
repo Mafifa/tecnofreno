@@ -147,12 +147,6 @@ export const actions = {
       dispatch({ type: 'SET_GUARDANDO_VEHICULO', guardando: true })
 
       try {
-        // Validar datos antes de enviar
-        if (!vehiculo.placa || !vehiculo.modelo) {
-          toast.error('Faltan datos del vehículo')
-          return
-        }
-
         // Aquí iría la lógica para guardar el vehículo en la base de datos
         const result = await window.electron.ipcRenderer.invoke('vehiculo:create', vehiculo)
 

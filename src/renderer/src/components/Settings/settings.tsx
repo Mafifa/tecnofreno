@@ -122,6 +122,8 @@ const Configuracion: React.FC<ConfiguracionProps> = ({ onClose }) => {
         busqueda: busquedaMecanicos,
         pagina: paginaMecanicos,
         itemsPorPagina: ITEMS_POR_PAGINA,
+        ordenarPor: "id",
+        ordenDireccion: "DESC",
       })) as PaginatedResponse<Mecanico>
 
       setMecanicos(resultado.items)
@@ -143,6 +145,8 @@ const Configuracion: React.FC<ConfiguracionProps> = ({ onClose }) => {
         busqueda: busquedaClientes,
         pagina: paginaClientes,
         itemsPorPagina: ITEMS_POR_PAGINA,
+        ordenarPor: "id",
+        ordenDireccion: "DESC",
       })) as PaginatedResponse<Cliente>
 
       setClientes(resultado.items)
@@ -164,6 +168,8 @@ const Configuracion: React.FC<ConfiguracionProps> = ({ onClose }) => {
         busqueda: busquedaVehiculos,
         pagina: paginaVehiculos,
         itemsPorPagina: ITEMS_POR_PAGINA,
+        ordenarPor: "id",
+        ordenDireccion: "DESC",
       })) as PaginatedResponse<Vehiculo>
 
       setVehiculos(resultado.items)
@@ -185,6 +191,8 @@ const Configuracion: React.FC<ConfiguracionProps> = ({ onClose }) => {
         busqueda: busquedaOrdenes,
         pagina: paginaOrdenes,
         itemsPorPagina: ITEMS_POR_PAGINA,
+        ordenarPor: "id",
+        ordenDireccion: "DESC",
       })) as PaginatedResponse<OrdenResumen>
 
       setOrdenes(resultado.items)
@@ -479,7 +487,7 @@ const Configuracion: React.FC<ConfiguracionProps> = ({ onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 px-6 overflow-x-auto">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 px-6 h-16 overflow-x-auto">
           <button
             onClick={() => setTabActiva("mecanicos")}
             className={`py-3 px-4 font-medium text-sm border-b-2 ${tabActiva === "mecanicos"

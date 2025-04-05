@@ -12,10 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  target: nsis # Usa NSIS como empaquetador por defecto
   executableName: tecnofreno
-  arch:
-    - ia32 # Especifica que solo se genere para arquitectura de 32 bits
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

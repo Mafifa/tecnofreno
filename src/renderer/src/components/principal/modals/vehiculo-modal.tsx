@@ -7,10 +7,11 @@ import { useSearchClient } from "../hooks/clientes/getCliente"
 interface VehiculoModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (vehiculo: Vehiculo) => void
+  onSave: (vehiculo: Omit<Vehiculo, 'id'>) => void
+  loadingVehiculo: boolean
 }
 
-export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModalProps) {
+export default function VehiculoModal ({ isOpen, onClose, onSave, loadingVehiculo }: VehiculoModalProps) {
   const [nombreBusqueda, setNombreBusqueda] = useState("")
   const [modelo, setModelo] = useState("")
   const [placa, setPlaca] = useState("")
@@ -19,7 +20,7 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
   const [clienteEncontrado, setClienteEncontrado] = useState<Cliente | null>(null)
   const [clientesSugeridos, setClientesSugeridos] = useState<Cliente[]>([])
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false)
-  const { addVehiculo, error: vehiculoError, isLoading: loadingVehiculo } = useAddVehiculo()
+  const { error: vehiculoError, } = useAddVehiculo()
   const { data, search, loading: isLoading } = useSearchClient()
 
   useEffect(() => {
@@ -53,13 +54,13 @@ export default function VehiculoModal ({ isOpen, onClose, onSave }: VehiculoModa
     if (!clienteEncontrado?.id) return
 
     try {
-      const nuevoVehiculo = await addVehiculo.mutateAsync({
+      const nuevoVehiculo = {
         modelo,
         placa,
         anio: anio,
         tipo,
-        cliente_id: clienteEncontrado.id,
-      })
+        cliente_id: clienteEncontrado.id
+      }
       onSave(nuevoVehiculo)
       handleClose()
     } catch (error) {

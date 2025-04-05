@@ -114,12 +114,33 @@ export default function Historial () {
   }
 
   // Función para formatear la fecha
-  const formatearFecha = (fechaISO: string) => {
-    const fecha = new Date(fechaISO)
+  const formatearFecha = (fechaISO: string | Date | undefined) => {
+    // Si es un objeto Date, convertirlo directamente
+    if (fechaISO instanceof Date) {
+      return fechaISO.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: fechaISO.getHours() !== 0 || fechaISO.getMinutes() !== 0 ? "2-digit" : undefined,
+        minute: fechaISO.getHours() !== 0 || fechaISO.getMinutes() !== 0 ? "2-digit" : undefined,
+        hour12: false,
+      })
+    }
+
+    // Si la fecha ya está en formato DD/MM/YYYY, HH:MM, devolverla tal cual
+    if (typeof fechaISO === "string" && /^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}$/.test(fechaISO)) {
+      return fechaISO
+    }
+
+    // Si no, formatear desde ISO
+    const fecha = new Date(fechaISO as string)
     return fecha.toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
+      hour: fecha.getHours() !== 0 || fecha.getMinutes() !== 0 ? "2-digit" : undefined,
+      minute: fecha.getHours() !== 0 || fecha.getMinutes() !== 0 ? "2-digit" : undefined,
+      hour12: false,
     })
   }
 

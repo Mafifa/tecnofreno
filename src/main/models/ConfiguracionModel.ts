@@ -88,7 +88,7 @@ export class ConfiguracionModel {
         m.nombre,
         (SELECT COUNT(*) FROM OrdenTrabajo ot WHERE ot.mecanico_id = m.id) as ordenes_count
       ${queryBase}
-      ORDER BY m.nombre
+      ORDER BY m.id DESC
       LIMIT ? OFFSET ?
     `
 
@@ -152,7 +152,7 @@ export class ConfiguracionModel {
         (SELECT COUNT(*) FROM Vehiculo v WHERE v.cliente_id = c.id) as vehiculos_count,
         (SELECT COUNT(*) FROM OrdenTrabajo ot WHERE ot.cliente_id = c.id) as ordenes_count
       ${queryBase}
-      ORDER BY c.nombre
+      ORDER BY c.id DESC
       LIMIT ? OFFSET ?
     `
 
@@ -220,7 +220,7 @@ export class ConfiguracionModel {
         c.nombre as cliente_nombre,
         (SELECT COUNT(*) FROM OrdenTrabajo ot WHERE ot.vehiculo_id = v.id) as ordenes_count
       ${queryBase}
-      ORDER BY v.placa
+      ORDER BY v.id DESC
       LIMIT ? OFFSET ?
     `
 

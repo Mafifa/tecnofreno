@@ -17,7 +17,6 @@ import MecanicoModal from "./modals/mecanico-modal"
 import { reducer, initialState } from "./state/reducer"
 import { actions } from "./state/actions"
 
-
 export default function Principal () {
   const [state, dispatch] = useReducer(reducer, initialState)
   const [isBuscando, setIsBuscando] = useState(false)
@@ -27,7 +26,7 @@ export default function Principal () {
 
   // Handlers con action creators
   const handleMecanicoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: "UPDATE_FORM", field: "mecanico", value: e.target.value })
+    dispatch({ type: "UPDATE_FORM", field: "mecanico", value: e.target.value.toUpperCase() })
   }
 
   const handleSearchMecanicos = useCallback((query: string) => {
@@ -240,6 +239,8 @@ export default function Principal () {
             isOpen={state.modals.vehiculo}
             onClose={() => dispatch({ type: "TOGGLE_MODAL", modalName: "vehiculo", value: false })}
             onSave={handleSaveVehiculo}
+            loadingVehiculo={state.search.guardandoVehiculo
+            }
           />
         )}
       </ModalContainer>

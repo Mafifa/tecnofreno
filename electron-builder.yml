@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: tecnofreno
+appId: com.mafifa.tecnofreno
+productName: Tecnofreno
 directories:
   buildResources: build
 files:
@@ -43,5 +43,5 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  url: https://github.com/Mafifa/tecnofreno.git

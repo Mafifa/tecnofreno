@@ -1,5 +1,5 @@
 import type { Dispatch } from 'react'
-import type { Action } from './types'
+import type { Action, State } from './types'
 import { toast } from 'sonner'
 
 // Dummy function, replace with actual implementation
@@ -96,120 +96,182 @@ export const actions = {
   },
 
   // Guardar cliente
-  guardarCliente: (cliente: Omit<Cliente, 'id'>) => async (dispatch: Dispatch<Action>) => {
-    try {
-      const result = await window.electron.ipcRenderer.invoke('cliente:create', cliente)
-
-      console.log('Cliente guardado:', result)
-
-      // Cerrar el modal después de guardar
-      dispatch({ type: 'TOGGLE_MODAL', modalName: 'cliente', value: false })
-
-      // Opcional: Mostrar mensaje de éxito
-      // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Cliente guardado con éxito' })
-      toast.success('Cliente guardado con éxito')
-    } catch (error) {
-      console.error('Error al guardar cliente:', error)
-      // Opcional: Mostrar mensaje de error
-      // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Error al guardar cliente', isError: true })
-      toast.error('Error al guardar cliente')
-    }
-  },
-
-  // Guardar vehículo
-  guardarVehiculo: (vehiculo: Omit<Vehiculo, 'id'>) => async (dispatch: Dispatch<Action>) => {
-    try {
-      // Aquí iría la lógica para guardar el vehículo en la base de datos
-      const result = await window.electron.ipcRenderer.invoke('vehiculo:create', vehiculo)
-
-      // Verificar si la operación fue exitosa
-      if (!result.success) {
-        // Manejar diferentes tipos de errores
-        if (result.error === 'DUPLICATE_PLATE') {
-          toast.error(`Ya existe un vehículo con la placa ${vehiculo.placa}`)
-          return
-        } else {
-          toast.error(`Ya existe un vehículo con esta placa`)
-          return
-        }
-      }
-
-      console.log('Vehículo guardado:', result.data)
-
-      // Cerrar el modal después de guardar
-      dispatch({ type: 'TOGGLE_MODAL', modalName: 'vehiculo', value: false })
-
-      // Mostrar mensaje de éxito
-      toast.success('Vehículo guardado con éxito')
-    } catch (error) {
-      console.error('Error al guardar vehículo:', error)
-      toast.error('Error al guardar vehículo')
-    }
-  },
-
-  // Guardar mecánico
-  guardarMecanico: (nombre: string) => async (dispatch: Dispatch<Action>) => {
-    try {
-      if (!nombre.trim()) {
+  guardarCliente:
+    (cliente: Omit<Cliente, 'id'>) => async (dispatch: Dispatch<Action>, getState: () => State) => {
+      // Verificar si ya está en proceso de guardado
+      const state = getState()
+      if (state.search.guardandoCliente) {
+        console.log('Ya se está guardando un cliente, operación ignorada')
         return
       }
 
-      // Aquí iría la lógica para guardar el mecánico en la base de datos
-      // Ejemplo:
-      const nuevoMecanico = await window.electron.ipcRenderer.invoke('mecanico:create', nombre)
+      // Establecer flag de guardado
+      dispatch({ type: 'SET_GUARDANDO_CLIENTE', guardando: true })
 
-      // Agregar el mecánico a la lista local
-      dispatch({ type: 'ADD_MECANICO', mecanico: nuevoMecanico })
+      try {
+        // Validar datos antes de enviar
+        if (!cliente.nombre || !cliente.telefono) {
+          toast.error('Faltan datos del cliente')
+          return
+        }
 
-      // Cerrar el modal
-      dispatch({ type: 'TOGGLE_MODAL', modalName: 'mecanico', value: false })
-      toast.success('Mecanico guardado')
+        const result = await window.electron.ipcRenderer.invoke('cliente:create', cliente)
 
-      // Seleccionar el mecánico recién agregado
-      dispatch({ type: 'SELECT_MECANICO', mecanico: nuevoMecanico })
-    } catch (error) {
-      console.error('Error al guardar mecánico:', error)
-      toast.error('Error al guardar mecánico')
-    }
-  },
+        console.log('Cliente guardado:', result)
+
+        // Cerrar el modal después de guardar
+        dispatch({ type: 'TOGGLE_MODAL', modalName: 'cliente', value: false })
+
+        toast.success('Cliente guardado con éxito')
+      } catch (error) {
+        console.error('Error al guardar cliente:', error)
+        toast.error('Error al guardar cliente')
+      } finally {
+        // Restablecer el flag
+        dispatch({ type: 'SET_GUARDANDO_CLIENTE', guardando: false })
+      }
+    },
+
+  // Guardar vehículo
+  guardarVehiculo:
+    (vehiculo: Omit<Vehiculo, 'id'>) =>
+    async (dispatch: Dispatch<Action>, getState: () => State) => {
+      // Verificar si ya está en proceso de guardado
+      const state = getState()
+      if (state.search.guardandoVehiculo) {
+        console.log('Ya se está guardando un vehículo, operación ignorada')
+        return
+      }
+
+      // Establecer flag de guardado
+      dispatch({ type: 'SET_GUARDANDO_VEHICULO', guardando: true })
+
+      try {
+        // Validar datos antes de enviar
+        if (!vehiculo.placa || !vehiculo.modelo) {
+          toast.error('Faltan datos del vehículo')
+          return
+        }
+
+        // Aquí iría la lógica para guardar el vehículo en la base de datos
+        const result = await window.electron.ipcRenderer.invoke('vehiculo:create', vehiculo)
+
+        // Verificar si la operación fue exitosa
+
+        if (result.error === 'DUPLICATE_PLATE') {
+          toast.error(`Ya existe un vehículo con la placa ${vehiculo.placa}`)
+          return
+        }
+        if (result.error === 'CREATION_ERROR') {
+          toast.error(`Error al crear vehiculo`)
+          return
+        }
+
+        console.log('Vehículo guardado:', result.data)
+
+        // Cerrar el modal después de guardar
+        dispatch({ type: 'TOGGLE_MODAL', modalName: 'vehiculo', value: false })
+
+        // Mostrar mensaje de éxito
+        toast.success('Vehículo guardado con éxito')
+      } catch (error) {
+        console.error('Error al guardar vehículo:', error)
+        toast.error('Error al guardar vehículo')
+      } finally {
+        // Siempre restablecer el flag de guardado
+        dispatch({ type: 'SET_GUARDANDO_VEHICULO', guardando: false })
+      }
+    },
+
+  // Guardar mecánico
+  guardarMecanico:
+    (nombre: string) => async (dispatch: Dispatch<Action>, getState: () => State) => {
+      // Verificar si ya está en proceso de guardado
+      const state = getState()
+      if (state.search.guardandoMecanico) {
+        console.log('Ya se está guardando un mecánico, operación ignorada')
+        return
+      }
+
+      try {
+        if (!nombre.trim()) {
+          return
+        }
+
+        // Establecer flag de guardado
+        dispatch({ type: 'SET_GUARDANDO_MECANICO', guardando: true })
+
+        // Aquí iría la lógica para guardar el mecánico en la base de datos
+        const nuevoMecanico = await window.electron.ipcRenderer.invoke('mecanico:create', nombre)
+
+        // Agregar el mecánico a la lista local
+        dispatch({ type: 'ADD_MECANICO', mecanico: nuevoMecanico })
+
+        // Cerrar el modal
+        dispatch({ type: 'TOGGLE_MODAL', modalName: 'mecanico', value: false })
+        toast.success('Mecanico guardado')
+
+        // Seleccionar el mecánico recién agregado
+        dispatch({ type: 'SELECT_MECANICO', mecanico: nuevoMecanico })
+      } catch (error) {
+        console.error('Error al guardar mecánico:', error)
+        toast.error('Error al guardar mecánico')
+      } finally {
+        dispatch({ type: 'SET_GUARDANDO_MECANICO', guardando: false })
+      }
+    },
 
   // Registrar garantía
-  registrarGarantia: (garantia: Omit<Garantia, 'id'>) => async (dispatch: Dispatch<Action>) => {
-    dispatch({ type: 'SET_GUARDANDO_GARANTIA', guardando: true })
-    dispatch({ type: 'SET_SEARCH_ERROR', error: null })
-
-    try {
-      // Validar datos de garantía
-      if (!garantia.tiempo || garantia.tiempo <= 0) {
-        dispatch({ type: 'SET_SEARCH_ERROR', error: 'El tiempo de garantía debe ser mayor a 0' })
+  registrarGarantia:
+    (garantia: Omit<Garantia, 'id'>) =>
+    async (dispatch: Dispatch<Action>, getState: () => State) => {
+      // Verificar si ya está en proceso de guardado
+      const state = getState()
+      if (state.search.guardandoGarantia) {
+        console.log('Ya se está guardando una garantía, operación ignorada')
         return null
       }
 
-      // Aquí iría la lógica para guardar la garantía en la base de datos
-      const nuevaGarantia = await window.electron.ipcRenderer.invoke('garantia:create', garantia)
+      dispatch({ type: 'SET_GUARDANDO_GARANTIA', guardando: true })
+      dispatch({ type: 'SET_SEARCH_ERROR', error: null })
 
-      // Guardar el ID de la garantía en el estado
-      dispatch({ type: 'SET_GARANTIA_ID', id: nuevaGarantia.id })
+      try {
+        // Validar datos de garantía
+        if (!garantia.tiempo || garantia.tiempo <= 0) {
+          dispatch({ type: 'SET_SEARCH_ERROR', error: 'El tiempo de garantía debe ser mayor a 0' })
+          return null
+        }
 
-      console.log('Garantía registrada:', nuevaGarantia)
-      return nuevaGarantia.id
-    } catch (error) {
-      console.error('Error al registrar garantía:', error)
-      dispatch({ type: 'SET_SEARCH_ERROR', error: 'Error al registrar la garantía' })
-      return null
-    } finally {
-      dispatch({ type: 'SET_GUARDANDO_GARANTIA', guardando: false })
-    }
-  },
+        // Aquí iría la lógica para guardar la garantía en la base de datos
+        const nuevaGarantia = await window.electron.ipcRenderer.invoke('garantia:create', garantia)
+
+        // Guardar el ID de la garantía en el estado
+        dispatch({ type: 'SET_GARANTIA_ID', id: nuevaGarantia.id })
+
+        console.log('Garantía registrada:', nuevaGarantia)
+        return nuevaGarantia.id
+      } catch (error) {
+        console.error('Error al registrar garantía:', error)
+        dispatch({ type: 'SET_SEARCH_ERROR', error: 'Error al registrar la garantía' })
+        return null
+      } finally {
+        dispatch({ type: 'SET_GUARDANDO_GARANTIA', guardando: false })
+      }
+    },
 
   // Guardar orden de trabajo
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  guardarOrden: () => async (dispatch: Dispatch<Action>, getState: () => any) => {
+  guardarOrden: () => async (dispatch: Dispatch<Action>, getState: () => State) => {
+    // Verificar si ya está en proceso de guardado
+    const state = getState()
+    if (state.search.guardandoOrden) {
+      console.log('Ya se está guardando una orden, operación ignorada')
+      return
+    }
+
     dispatch({ type: 'SET_GUARDANDO_ORDEN', guardando: true })
     dispatch({ type: 'SET_SEARCH_ERROR', error: null })
 
     try {
-      const state = getState()
       const { form } = state
 
       // Validaciones básicas
@@ -249,8 +311,8 @@ export const actions = {
       if (form.garantia.tiempo && Number.parseInt(form.garantia.tiempo) > 0) {
         garantiaId = await actions.registrarGarantia({
           tiempo: Number.parseInt(form.garantia.tiempo),
-          unidad: form.garantia.unidad
-        })(dispatch)
+          unidad: form.garantia.unidad as 'dias' | 'semanas' | 'meses'
+        })(dispatch, getState)
       }
 
       const date = new Date()
@@ -268,16 +330,15 @@ export const actions = {
 
       const ordenData: Omit<OrdenTrabajo, 'id'> = {
         fecha: formatearFecha(date),
-        vehiculo_id: Number.parseInt(form.datos.vehiculoId),
-        mecanico_id: Number.parseInt(form.mecanicoId),
-        cliente_id: Number.parseInt(form.datos.clienteId),
+        vehiculo_id: form.datos.vehiculoId,
+        mecanico_id: form.mecanicoId,
+        cliente_id: form.datos.clienteId,
         trabajo_realizado: form.trabajoRealizado,
         notas: form.nota || undefined,
         garantia_id: garantiaId
       }
 
       // Aquí iría la lógica para guardar la orden en la base de datos
-      // Ejemplo:
       const nuevaOrden = await window.electron.ipcRenderer.invoke('orden:create', ordenData)
 
       console.log('Orden guardada:', nuevaOrden)
@@ -288,8 +349,6 @@ export const actions = {
       // Resetear el formulario
       dispatch({ type: 'RESET_FORM' })
 
-      // Opcional: Mostrar mensaje de éxito
-      // dispatch({ type: 'SHOW_NOTIFICATION', message: 'Orden guardada con éxito' })
       toast.success('Orden guardada con éxito')
     } catch (error) {
       console.error('Error al guardar orden:', error)

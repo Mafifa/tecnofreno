@@ -55,7 +55,7 @@ export default function MecanicoModal ({ onClose, onSave }: MecanicoModalProps) 
       <input
         type="text"
         value={nombreMecanico}
-        onChange={(e) => setNombreMecanico(e.target.value)}
+        onChange={(e) => setNombreMecanico(e.target.value.toUpperCase())}
         className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         placeholder="Nombre del nuevo mecánico"
       />

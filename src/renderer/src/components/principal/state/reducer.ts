@@ -97,6 +97,31 @@ export function reducer(state: State, action: Action): State {
           guardandoOrden: action.guardando
         }
       }
+    // Nuevos casos para los flags de guardado
+    case 'SET_GUARDANDO_VEHICULO':
+      return {
+        ...state,
+        search: {
+          ...state.search,
+          guardandoVehiculo: action.guardando
+        }
+      }
+    case 'SET_GUARDANDO_CLIENTE':
+      return {
+        ...state,
+        search: {
+          ...state.search,
+          guardandoCliente: action.guardando
+        }
+      }
+    case 'SET_GUARDANDO_MECANICO':
+      return {
+        ...state,
+        search: {
+          ...state.search,
+          guardandoMecanico: action.guardando
+        }
+      }
     case 'SET_GARANTIA_ID':
       return {
         ...state,
@@ -186,7 +211,10 @@ export const initialState: State = {
     error: null,
     buscandoMecanicos: false,
     guardandoGarantia: false,
-    guardandoOrden: false
+    guardandoOrden: false,
+    guardandoVehiculo: false, // Inicializar nuevos flags
+    guardandoCliente: false,
+    guardandoMecanico: false
   },
   ordenSeleccionada: null
 }

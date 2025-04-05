@@ -8,9 +8,10 @@ export class VehiculoModel {
       const existingVehicle = await this.findByPlaca(vehiculo.placa)
 
       if (existingVehicle) {
-        // Si ya existe un vehículo con esa placa, retornar null
         return null
       }
+
+      console.log(vehiculo.modelo)
 
       // Si no existe, proceder con la creación
       const { lastID } = await db.run(

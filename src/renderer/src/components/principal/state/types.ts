@@ -39,8 +39,11 @@ export interface State {
     buscando: boolean
     error: string | null
     buscandoMecanicos: boolean
-    guardandoGarantia: boolean // Nuevo: Estado para indicar registro de garantía
-    guardandoOrden: boolean // Nuevo: Estado para indicar registro de orden
+    guardandoGarantia: boolean // Estado para indicar registro de garantía
+    guardandoOrden: boolean // Estado para indicar registro de orden
+    guardandoVehiculo: boolean // Nuevo: Estado para indicar registro de vehículo
+    guardandoCliente: boolean // Nuevo: Estado para indicar registro de cliente
+    guardandoMecanico: boolean // Nuevo: Estado para indicar registro de mecánico
   }
   ordenSeleccionada: OrdenTrabajo | null
 }
@@ -57,9 +60,12 @@ export type Action =
   | { type: 'SET_SEARCH_STATUS'; buscando: boolean }
   | { type: 'SET_SEARCH_ERROR'; error: string | null }
   | { type: 'SET_SEARCHING_MECANICOS'; buscando: boolean }
-  | { type: 'SET_GUARDANDO_GARANTIA'; guardando: boolean } // Nueva acción
-  | { type: 'SET_GUARDANDO_ORDEN'; guardando: boolean } // Nueva acción
-  | { type: 'SET_GARANTIA_ID'; id: number } // Nueva acción para guardar ID de garantía
+  | { type: 'SET_GUARDANDO_GARANTIA'; guardando: boolean }
+  | { type: 'SET_GUARDANDO_ORDEN'; guardando: boolean }
+  | { type: 'SET_GUARDANDO_VEHICULO'; guardando: boolean } // Nueva acción
+  | { type: 'SET_GUARDANDO_CLIENTE'; guardando: boolean } // Nueva acción
+  | { type: 'SET_GUARDANDO_MECANICO'; guardando: boolean } // Nueva acción
+  | { type: 'SET_GARANTIA_ID'; id: number }
   | { type: 'SELECT_ORDEN'; orden: OrdenTrabajo | null }
   | { type: 'ADD_MECANICO'; mecanico: Mecanico }
   | { type: 'SAVE_ORDEN' }

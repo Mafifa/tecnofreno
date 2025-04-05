@@ -4,6 +4,7 @@ import { VehiculoModel } from '../models/VehiculoModel'
 export function setupVehiculoController(ipcMain: IpcMain): void {
   ipcMain.handle('vehiculo:create', async (_, vehiculoData: Omit<Vehiculo, 'id'>) => {
     try {
+      console.log('DESDE el controller', vehiculoData.modelo)
       const result = await VehiculoModel.create(vehiculoData)
 
       // Si el resultado es null, significa que ya existe un vehículo con esa placa

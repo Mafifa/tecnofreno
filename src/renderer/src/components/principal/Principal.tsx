@@ -74,15 +74,15 @@ export default function Principal () {
   }, [state])
 
   const handleSaveCliente = useCallback(async (clienteData: Omit<Cliente, 'id'>) => {
-    await actions.guardarCliente(clienteData)(dispatch)
+    await actions.guardarCliente(clienteData)(dispatch, () => state)
   }, [])
 
   const handleSaveVehiculo = useCallback(async (vehiculoData: Omit<Vehiculo, 'id'>) => {
-    await actions.guardarVehiculo(vehiculoData)(dispatch)
+    await actions.guardarVehiculo(vehiculoData)(dispatch, () => state)
   }, [])
 
   const handleSaveMecanico = useCallback(async (nombre: string) => {
-    await actions.guardarMecanico(nombre)(dispatch)
+    await actions.guardarMecanico(nombre)(dispatch, () => state)
   }, [])
 
   const handleSelectMecanico = useCallback((mecanico: Mecanico) => {
